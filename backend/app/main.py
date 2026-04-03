@@ -9,9 +9,9 @@ from backend.app.models.database import init_db
 from backend.app.config import settings
 
 app = FastAPI(
-    title="Reselling Arbitrage Agent",
-    description="Finde profitable Deals auf eBay und Kleinanzeigen",
-    version="1.0.0",
+    title="ResellPro Arbitrage Agent",
+    description="KI-gestützter Reselling-Agent für eBay & Kleinanzeigen",
+    version="2.0.0",
 )
 
 # CORS

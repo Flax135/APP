@@ -3,34 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reselling Arbitrage Agent</title>
+    <title>ResellPro - Arbitrage Agent</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="logo-icon">&#x1F4B0;</span>
+            <span class="logo-text">ResellPro</span>
+        </div>
+        <div class="nav-links">
+            <button class="nav-btn active" data-view="search">Suche</button>
+            <button class="nav-btn" data-view="analyze">URL Analyse</button>
+            <button class="nav-btn" data-view="history">Verlauf</button>
+        </div>
+    </nav>
+
     <div class="container">
-        <header>
-            <h1>Reselling Arbitrage Agent</h1>
-            <p>Finde profitable Deals auf eBay & Kleinanzeigen</p>
+        <!-- Hero Section -->
+        <header class="hero">
+            <h1>Finde profitable Deals</h1>
+            <p>KI-gestützter Reselling-Agent für eBay & Kleinanzeigen</p>
         </header>
 
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Produkt suchen (z.B. iPhone 15, PS5, Nike Air Max...)" autofocus>
-            <input type="number" id="max-price" placeholder="Max. Preis €" min="0" step="1">
-            <select id="platform-select">
-                <option value="ebay,kleinanzeigen">Alle Plattformen</option>
-                <option value="ebay">Nur eBay</option>
-                <option value="kleinanzeigen">Nur Kleinanzeigen</option>
-            </select>
-            <button class="btn" id="search-btn">Suchen</button>
+        <!-- Search View -->
+        <div id="view-search" class="view active">
+            <div class="search-box">
+                <div class="search-main">
+                    <div class="search-icon">&#x1F50D;</div>
+                    <input type="text" id="search-input" placeholder="Produkt suchen (z.B. iPhone 15, PS5, Nike Air Max...)" autofocus>
+                </div>
+                <div class="search-filters">
+                    <input type="number" id="max-price" placeholder="Max. Preis €" min="0" step="1">
+                    <select id="platform-select">
+                        <option value="ebay,kleinanzeigen">Alle Plattformen</option>
+                        <option value="ebay">Nur eBay</option>
+                        <option value="kleinanzeigen">Nur Kleinanzeigen</option>
+                    </select>
+                    <select id="results-count">
+                        <option value="10">10 Ergebnisse</option>
+                        <option value="15" selected>15 Ergebnisse</option>
+                        <option value="25">25 Ergebnisse</option>
+                        <option value="50">50 Ergebnisse</option>
+                    </select>
+                    <button class="btn btn-primary" id="search-btn">Deals finden</button>
+                </div>
+            </div>
+
+            <div id="stats-bar" class="stats-bar"></div>
+            <div id="deals-grid" class="deals-grid">
+                <div class="empty-state">
+                    <div class="empty-icon">&#x1F4E6;</div>
+                    <h3>Bereit zum Suchen</h3>
+                    <p>Gib einen Suchbegriff ein, um profitable Deals zu finden.</p>
+                    <div class="features-grid">
+                        <div class="feature">
+                            <span>&#x1F50D;</span>
+                            <strong>Produktsuche</strong>
+                            <small>eBay & Kleinanzeigen</small>
+                        </div>
+                        <div class="feature">
+                            <span>&#x1F4CA;</span>
+                            <strong>Marktanalyse</strong>
+                            <small>Echte Verkaufspreise</small>
+                        </div>
+                        <div class="feature">
+                            <span>&#x1F9E0;</span>
+                            <strong>KI-Bildanalyse</strong>
+                            <small>Zustand & Fake-Check</small>
+                        </div>
+                        <div class="feature">
+                            <span>&#x26A0;&#xFE0F;</span>
+                            <strong>Risikoanalyse</strong>
+                            <small>Scam-Erkennung</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="stats-bar" class="stats-bar"></div>
-        <div id="deals-grid" class="deals-grid">
-            <div class="empty-state">
-                <p>Suche nach einem Produkt, um Deals zu finden.</p>
+        <!-- URL Analyze View -->
+        <div id="view-analyze" class="view">
+            <div class="analyze-box">
+                <h2>Einzelne Anzeige analysieren</h2>
+                <p>Füge den Link einer eBay- oder Kleinanzeigen-Anzeige ein</p>
+                <div class="analyze-input-row">
+                    <input type="url" id="analyze-url" placeholder="https://www.ebay.de/itm/... oder https://www.kleinanzeigen.de/s-anzeige/...">
+                    <button class="btn btn-primary" id="analyze-btn">Analysieren</button>
+                </div>
+            </div>
+            <div id="analyze-result" class="analyze-result"></div>
+        </div>
+
+        <!-- History View -->
+        <div id="view-history" class="view">
+            <div class="history-header">
+                <h2>Suchverlauf</h2>
+                <button class="btn btn-secondary" id="clear-history-btn">Verlauf löschen</button>
+            </div>
+            <div id="history-list" class="history-list">
+                <div class="empty-state">
+                    <div class="empty-icon">&#x1F4DC;</div>
+                    <h3>Noch kein Verlauf</h3>
+                    <p>Deine bisherigen Suchen erscheinen hier.</p>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Deal Detail Modal -->
+    <div id="deal-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>ResellPro Arbitrage Agent &mdash; Maximaler Gewinn bei minimalem Risiko</p>
+    </footer>
 
     <script src="/static/js/app.js"></script>
 </body>
