@@ -3,34 +3,509 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reselling Arbitrage Agent</title>
+    <title>Beauty Room Coesfeld | Kosmetik · Wellness · PMU · Haarentfernung</title>
+    <meta name="description" content="Beauty Room Coesfeld – Ihr Studio für Kosmetik, Wellness, Permanent Make-Up, SHR-Haarentfernung und Microneedling in Coesfeld.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Reselling Arbitrage Agent</h1>
-            <p>Finde profitable Deals auf eBay & Kleinanzeigen</p>
-        </header>
 
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Produkt suchen (z.B. iPhone 15, PS5, Nike Air Max...)" autofocus>
-            <input type="number" id="max-price" placeholder="Max. Preis €" min="0" step="1">
-            <select id="platform-select">
-                <option value="ebay,kleinanzeigen">Alle Plattformen</option>
-                <option value="ebay">Nur eBay</option>
-                <option value="kleinanzeigen">Nur Kleinanzeigen</option>
-            </select>
-            <button class="btn" id="search-btn">Suchen</button>
+    <!-- Navigation -->
+    <nav class="nav" id="nav">
+        <div class="nav-inner">
+            <a href="#home" class="nav-logo">
+                <span class="nav-logo-main">Beauty Room</span>
+                <span class="nav-logo-sub">Coesfeld</span>
+            </a>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#leistungen" class="nav-link">Leistungen</a></li>
+                <li><a href="#haarentfernung" class="nav-link">Haarentfernung</a></li>
+                <li><a href="#massagen" class="nav-link">Massagen</a></li>
+                <li><a href="#kontakt" class="nav-link">Kontakt</a></li>
+                <li>
+                    <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="nav-cta">
+                        Termin buchen
+                    </a>
+                </li>
+            </ul>
+            <button class="nav-burger" id="navBurger" aria-label="Menü öffnen">
+                <span></span><span></span><span></span>
+            </button>
         </div>
+    </nav>
 
-        <div id="stats-bar" class="stats-bar"></div>
-        <div id="deals-grid" class="deals-grid">
-            <div class="empty-state">
-                <p>Suche nach einem Produkt, um Deals zu finden.</p>
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul>
+            <li><a href="#leistungen" class="mobile-link">Leistungen</a></li>
+            <li><a href="#haarentfernung" class="mobile-link">Haarentfernung</a></li>
+            <li><a href="#massagen" class="mobile-link">Massagen</a></li>
+            <li><a href="#kontakt" class="mobile-link">Kontakt</a></li>
+            <li>
+                <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="mobile-cta">
+                    Termin buchen
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Hero -->
+    <section class="hero" id="home">
+        <div class="hero-bg"></div>
+        <div class="hero-content fade-in">
+            <p class="hero-eyebrow">Beauty &amp; Wellness in Coesfeld</p>
+            <h1 class="hero-title">Dein Moment<br><em>für dich</em></h1>
+            <p class="hero-subtitle">Kosmetik · Permanent Make-Up · SHR-Haarentfernung · Wellness</p>
+            <div class="hero-actions">
+                <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    Jetzt anfragen
+                </a>
+                <a href="#leistungen" class="btn btn-outline">Leistungen ansehen</a>
             </div>
         </div>
-    </div>
+        <div class="hero-scroll-hint">
+            <span></span>
+        </div>
+    </section>
+
+    <!-- Trust Bar -->
+    <section class="trust-bar">
+        <div class="container">
+            <div class="trust-items">
+                <div class="trust-item fade-up">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>Professionelle Behandlungen</span>
+                </div>
+                <div class="trust-item fade-up" style="--delay:.1s">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Flexible Terminvergabe</span>
+                </div>
+                <div class="trust-item fade-up" style="--delay:.2s">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    <span>Individuelle Beratung</span>
+                </div>
+                <div class="trust-item fade-up" style="--delay:.3s">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>Modernste Technologie</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== LEISTUNGEN ===== -->
+    <section class="section" id="leistungen">
+        <div class="container">
+            <div class="section-header fade-up">
+                <p class="section-eyebrow">Unser Angebot</p>
+                <h2 class="section-title">Leistungen</h2>
+                <p class="section-desc">Von zarter Gesichtspflege bis zu dauerhafter Haarentfernung – wir bieten dir ein vollständiges Beauty-Erlebnis.</p>
+            </div>
+
+            <!-- ── POWDER BROW ── -->
+            <div class="service-block fade-up" id="pmu">
+                <div class="service-block-header">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M8 12c0-2.21 1.79-4 4-4s4 1.79 4 4"/><path d="M12 8v1m0 6v1m-4-4h1m6 0h1"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="service-block-title">Powder Brow</h3>
+                        <p class="service-block-sub">Augenbrauen Permanent Make-Up</p>
+                    </div>
+                </div>
+                <div class="cards-grid cards-grid--2">
+                    <div class="service-card service-card--featured">
+                        <div class="service-card-badge">Beliebt</div>
+                        <h4>Powder Brow</h4>
+                        <p class="service-card-desc">Natürlicher Puder-Effekt für perfekt definierte Augenbrauen – langanhaltend und täuschend echt.</p>
+                        <div class="service-card-footer">
+                            <div class="price-tag">300 €</div>
+                            <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm">Anfragen</a>
+                        </div>
+                    </div>
+                    <div class="service-card">
+                        <h4>Nachbehandlung</h4>
+                        <p class="service-card-desc">Auffrischung innerhalb von 4–6 Wochen nach der Erstbehandlung für optimales Ergebnis.</p>
+                        <div class="service-card-footer">
+                            <div class="price-tag">50 €</div>
+                            <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm btn-outline-sm">Anfragen</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── GESICHTSBEHANDLUNG ── -->
+            <div class="service-block fade-up" id="gesicht">
+                <div class="service-block-header">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="service-block-title">Gesichtsbehandlung</h3>
+                        <p class="service-block-sub">Pro Facial · Anti-Age · Face Lifting</p>
+                    </div>
+                </div>
+                <div class="cards-grid cards-grid--2">
+
+                    <div class="service-card">
+                        <h4>Pro Facial Basis</h4>
+                        <ul class="service-list">
+                            <li>Abreinigung &amp; Tonic</li>
+                            <li>Abtragen abgestorbener Hautzellen</li>
+                            <li>Tiefenreinigung mit Säurepeeling</li>
+                            <li>Versorgung mit Hyaluron, Vitaminen &amp; Nährstoffen</li>
+                            <li>Gesichtsmaske nach Hauttyp</li>
+                            <li>Abschlusspflege (Creme)</li>
+                        </ul>
+                        <div class="service-card-footer">
+                            <div class="price-group">
+                                <div class="price-tag">69 €</div>
+                                <span class="price-duration">45 min</span>
+                            </div>
+                            <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm btn-outline-sm">Buchen</a>
+                        </div>
+                    </div>
+
+                    <div class="service-card service-card--featured">
+                        <div class="service-card-badge">Premium</div>
+                        <h4>Pro Facial Luxus &#x1F48E;</h4>
+                        <ul class="service-list">
+                            <li>Abreinigung &amp; Tonic</li>
+                            <li>Abtragen abgestorbener Hautzellen</li>
+                            <li>Tiefenreinigung mit Säurepeeling</li>
+                            <li>Versorgung mit Hyaluron, Vitaminen &amp; Nährstoffen</li>
+                            <li>Gesichtsmaske nach Hauttyp</li>
+                            <li>Gesichtsmassage &#x1F486;</li>
+                            <li>Abschlusspflege (Creme)</li>
+                        </ul>
+                        <div class="service-card-footer">
+                            <div class="price-group">
+                                <div class="price-tag">99 €</div>
+                                <span class="price-duration">70 min</span>
+                            </div>
+                            <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm">Buchen</a>
+                        </div>
+                    </div>
+
+                    <div class="service-card">
+                        <h4>Anti-Age Behandlung</h4>
+                        <ul class="service-list">
+                            <li>Abreinigung &amp; Tonic</li>
+                            <li>Enzyme Peeling</li>
+                            <li>Collagen Maske</li>
+                            <li>Gesichtsmassage</li>
+                            <li>Serum &amp; Creme</li>
+                        </ul>
+                        <div class="service-card-footer">
+                            <div class="price-group">
+                                <div class="price-tag">65 €</div>
+                                <span class="price-duration">45 min</span>
+                            </div>
+                            <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm btn-outline-sm">Buchen</a>
+                        </div>
+                    </div>
+
+                    <div class="service-card">
+                        <h4>Refreshing Face Lifting Massage</h4>
+                        <ul class="service-list">
+                            <li>Nacken</li>
+                            <li>Dekolleté</li>
+                            <li>Gesicht</li>
+                            <li>Hals</li>
+                        </ul>
+                        <div class="service-card-footer">
+                            <div class="price-group">
+                                <div class="price-tag">50 €</div>
+                                <span class="price-duration">40 min</span>
+                            </div>
+                            <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm btn-outline-sm">Buchen</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── MICRONEEDLING ── -->
+            <div class="service-block fade-up" id="microneedling">
+                <div class="service-block-header">
+                    <div class="service-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="service-block-title">Microneedling</h3>
+                        <p class="service-block-sub">Hautrevitalisierung durch Kollagenstimulation</p>
+                    </div>
+                </div>
+                <div class="microneedling-block">
+                    <div class="microneedling-text fade-up">
+                        <p>Mit Microneedling kannst du deiner Haut neuen Glanz verleihen. Durch feine Nadeln werden kleine Impulse in der Haut gesetzt, die deine natürliche Kollagenproduktion anregen und die Hautstruktur verbessern.</p>
+                        <p>Diese Methode ist ideal, um feine Linien, Aknenarben, Pigmentflecken oder einen fahlen Teint zu behandeln. Nach der Behandlung fühlt sich deine Haut glatter, straffer und frischer an.</p>
+                        <p class="microneedling-cta-text">Gönn dir den Glow! Buche deine Microneedling-Behandlung bei Beauty Room Coesfeld und lass dich von den Ergebnissen begeistern.</p>
+                        <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-primary">Jetzt buchen</a>
+                    </div>
+                    <div class="microneedling-prices fade-up" style="--delay:.15s">
+                        <div class="price-card price-card--gold">
+                            <div class="price-card-label">Einzelbehandlung</div>
+                            <div class="price-card-amount">99 €</div>
+                            <div class="price-card-duration">60 Minuten</div>
+                        </div>
+                        <div class="price-card">
+                            <div class="price-card-label">Ab 3 Behandlungen</div>
+                            <div class="price-card-amount">79 €</div>
+                            <div class="price-card-duration">pro Sitzung</div>
+                            <div class="price-card-savings">Spare 20 € pro Behandlung</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SHR HAARENTFERNUNG ===== -->
+    <section class="section section--alt" id="haarentfernung">
+        <div class="container">
+            <div class="section-header fade-up">
+                <p class="section-eyebrow">Dauerhafte Lösung</p>
+                <h2 class="section-title">SHR-Haarentfernung</h2>
+                <p class="section-desc">Schmerzarme, dauerhafte Haarentfernung mit moderner SHR-Technologie – für dauerhaft glatte Haut.</p>
+            </div>
+
+            <div class="shr-grid fade-up">
+                <div class="shr-card">
+                    <div class="shr-zone">Kinn</div>
+                    <div class="shr-price">30 €</div>
+                </div>
+                <div class="shr-card">
+                    <div class="shr-zone">Oberlippe</div>
+                    <div class="shr-price">30 €</div>
+                </div>
+                <div class="shr-card">
+                    <div class="shr-zone">Wangen</div>
+                    <div class="shr-price">35 €</div>
+                </div>
+                <div class="shr-card">
+                    <div class="shr-zone">Achseln</div>
+                    <div class="shr-price">45 €</div>
+                </div>
+                <div class="shr-card">
+                    <div class="shr-zone">Oberarme</div>
+                    <div class="shr-price">45 €</div>
+                </div>
+                <div class="shr-card">
+                    <div class="shr-zone">Unterarme</div>
+                    <div class="shr-price">45 €</div>
+                </div>
+                <div class="shr-card shr-card--highlight">
+                    <div class="shr-zone">Arme komplett</div>
+                    <div class="shr-price">80 €</div>
+                </div>
+                <div class="shr-card">
+                    <div class="shr-zone">Bikini (Seiten)</div>
+                    <div class="shr-price">35 €</div>
+                </div>
+                <div class="shr-card">
+                    <div class="shr-zone">Oberschenkel</div>
+                    <div class="shr-price">75 €</div>
+                </div>
+                <div class="shr-card">
+                    <div class="shr-zone">Unterschenkel</div>
+                    <div class="shr-price">72 €</div>
+                </div>
+                <div class="shr-card shr-card--highlight">
+                    <div class="shr-zone">Beine komplett</div>
+                    <div class="shr-price">125 €</div>
+                </div>
+                <div class="shr-card shr-card--cta">
+                    <div class="shr-zone">Set-Preise</div>
+                    <div class="shr-price shr-price--small">auf Anfrage</div>
+                </div>
+            </div>
+
+            <!-- Hautverjüngung -->
+            <div class="hautv-block fade-up">
+                <div class="hautv-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+                </div>
+                <div class="hautv-content">
+                    <h3>Hautverjüngung mit SHR-Technologie</h3>
+                    <p>Verbesserung des Hautbildes bei: Akne-Narben · Pigmentierung · Hyperpigmentierung · Altersflecken · Besenreißer · Teleangiektasien · Dehnungsstreifen</p>
+                    <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-primary">Preis auf Anfrage</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== WELLNESSMASSAGE ===== -->
+    <section class="section" id="massagen">
+        <div class="container">
+            <div class="section-header fade-up">
+                <p class="section-eyebrow">Entspannung &amp; Wohlbefinden</p>
+                <h2 class="section-title">Wellnessmassagen</h2>
+                <p class="section-desc">Gönne dir eine wohlverdiente Auszeit – mit unseren entspannenden Massagen.</p>
+            </div>
+            <div class="cards-grid cards-grid--3 fade-up">
+                <div class="service-card service-card--center">
+                    <div class="massage-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </div>
+                    <h4>Gesichtsmassage</h4>
+                    <p class="service-card-desc">Entspannende Massage für ein frisches, strahlendes Erscheinungsbild.</p>
+                    <div class="service-card-footer service-card-footer--center">
+                        <div class="price-group">
+                            <div class="price-tag">25 €</div>
+                            <span class="price-duration">20 min</span>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm btn-outline-sm" style="margin-top:1rem">Buchen</a>
+                </div>
+                <div class="service-card service-card--featured service-card--center">
+                    <div class="service-card-badge">Empfehlung</div>
+                    <div class="massage-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    </div>
+                    <h4>Wellnessmassage</h4>
+                    <p class="service-card-desc">Ganzkörpermassage für tiefe Entspannung – Stress ade!</p>
+                    <div class="service-card-footer service-card-footer--center">
+                        <div class="price-group">
+                            <div class="price-tag">70 €</div>
+                            <span class="price-duration">60 min</span>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm" style="margin-top:1rem">Buchen</a>
+                </div>
+                <div class="service-card service-card--center">
+                    <div class="massage-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                    </div>
+                    <h4>Rückenmassage</h4>
+                    <p class="service-card-desc">Gezielte Entspannungsmassage für Rücken und Schultern.</p>
+                    <div class="service-card-footer service-card-footer--center">
+                        <div class="price-group">
+                            <div class="price-tag">40 €</div>
+                            <span class="price-duration">30 min</span>
+                        </div>
+                    </div>
+                    <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-sm btn-outline-sm" style="margin-top:1rem">Buchen</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== GUTSCHEIN ===== -->
+    <section class="section gutschein-section">
+        <div class="container">
+            <div class="gutschein-card fade-up">
+                <div class="gutschein-deco"></div>
+                <div class="gutschein-content">
+                    <div class="gutschein-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12v10H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+                    </div>
+                    <h2>Verschenke Schönheit</h2>
+                    <p>Mache jemandem eine Freude mit einem Beauty Room Gutschein – das ideale Geschenk für jeden Anlass.</p>
+                    <a href="https://giftcards.sumup.io/order/GWL7PDL/beauty-room-coesfeld" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+                        Gutschein kaufen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== KONTAKT ===== -->
+    <section class="section section--alt" id="kontakt">
+        <div class="container">
+            <div class="section-header fade-up">
+                <p class="section-eyebrow">Wir freuen uns auf dich</p>
+                <h2 class="section-title">Kontakt &amp; Anfahrt</h2>
+            </div>
+            <div class="kontakt-grid fade-up">
+                <div class="kontakt-card">
+                    <div class="kontakt-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </div>
+                    <h4>Adresse</h4>
+                    <p>Loburgerstr. 41<br>48653 Coesfeld</p>
+                </div>
+                <div class="kontakt-card">
+                    <div class="kontakt-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </div>
+                    <h4>Telefon / WhatsApp</h4>
+                    <a href="https://wa.me/4917622149212" target="_blank" rel="noopener">017622149212</a>
+                </div>
+                <div class="kontakt-card">
+                    <div class="kontakt-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </div>
+                    <h4>E-Mail</h4>
+                    <a href="mailto:beautyroom.coesfeld@gmail.com">beautyroom.coesfeld@gmail.com</a>
+                </div>
+                <div class="kontakt-card">
+                    <div class="kontakt-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                    </div>
+                    <h4>Instagram</h4>
+                    <a href="https://www.instagram.com/beautyroom.coesfeld/" target="_blank" rel="noopener">@beautyroom.coesfeld</a>
+                </div>
+            </div>
+
+            <div class="cta-block fade-up">
+                <h3>Bereit für dein Beauty-Erlebnis?</h3>
+                <p>Schreib uns einfach auf WhatsApp – wir melden uns schnellstmöglich zurück.</p>
+                <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    Jetzt auf WhatsApp schreiben
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-top">
+                <div class="footer-brand">
+                    <span class="footer-logo">Beauty Room Coesfeld</span>
+                    <p>Dein Studio für Kosmetik, Wellness &amp; mehr.</p>
+                    <div class="footer-social">
+                        <a href="https://www.instagram.com/beautyroom.coesfeld/" target="_blank" rel="noopener" aria-label="Instagram">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                        </a>
+                        <a href="https://wa.me/4917622149212" target="_blank" rel="noopener" aria-label="WhatsApp">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-links-col">
+                    <h5>Leistungen</h5>
+                    <ul>
+                        <li><a href="#pmu">Powder Brow / PMU</a></li>
+                        <li><a href="#gesicht">Gesichtsbehandlung</a></li>
+                        <li><a href="#microneedling">Microneedling</a></li>
+                        <li><a href="#haarentfernung">SHR-Haarentfernung</a></li>
+                        <li><a href="#massagen">Wellnessmassagen</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links-col">
+                    <h5>Kontakt</h5>
+                    <ul>
+                        <li><a href="https://wa.me/4917622149212" target="_blank" rel="noopener">WhatsApp</a></li>
+                        <li><a href="mailto:beautyroom.coesfeld@gmail.com">E-Mail</a></li>
+                        <li><a href="https://giftcards.sumup.io/order/GWL7PDL/beauty-room-coesfeld" target="_blank" rel="noopener">Gutschein kaufen</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Beauty Room Coesfeld &nbsp;|&nbsp; Loburgerstr. 41, 48653 Coesfeld</p>
+                <p class="footer-impressum">
+                    <strong>Impressum:</strong> Beautyroom Coesfeld, Inhaberin: Elmira Klewzow &nbsp;|&nbsp;
+                    Kleinunternehmer i.S.d. § 19 UStG &nbsp;|&nbsp;
+                    Tel.: 017622149212 &nbsp;|&nbsp;
+                    <a href="mailto:beautyroom.coesfeld@gmail.com">beautyroom.coesfeld@gmail.com</a>
+                </p>
+            </div>
+        </div>
+    </footer>
 
     <script src="/static/js/app.js"></script>
 </body>

@@ -1,156 +1,188 @@
-const API = "/api";
+/* =============================================
+   BEAUTY ROOM COESFELD – Frontend JS
+   ============================================= */
 
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
+(function () {
+    'use strict';
 
-// Elements
-const searchInput = $("#search-input");
-const maxPriceInput = $("#max-price");
-const platformSelect = $("#platform-select");
-const searchBtn = $("#search-btn");
-const dealsGrid = $("#deals-grid");
-const statsBar = $("#stats-bar");
+    /* --- Navbar scroll behaviour --- */
+    const nav = document.getElementById('nav');
+    let lastScroll = 0;
 
-// Search
-searchBtn.addEventListener("click", () => runSearch());
-searchInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") runSearch();
-});
+    window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (y > 40) {
+            nav.classList.add('scrolled');
+        } else {
+            nav.classList.remove('scrolled');
+        }
+        lastScroll = y;
+    }, { passive: true });
 
-async function runSearch() {
-    const query = searchInput.value.trim();
-    if (!query) return;
+    /* --- Mobile burger menu --- */
+    const burger = document.getElementById('navBurger');
+    const mobileMenu = document.getElementById('mobileMenu');
 
-    const maxPrice = maxPriceInput.value || "";
-    const platforms = platformSelect.value;
+    burger.addEventListener('click', () => {
+        const isOpen = mobileMenu.classList.toggle('open');
+        burger.classList.toggle('open', isOpen);
+        burger.setAttribute('aria-expanded', isOpen);
+        document.body.style.overflow = isOpen ? 'hidden' : '';
+    });
 
-    searchBtn.disabled = true;
-    dealsGrid.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Suche nach Deals...</p>
-        </div>
-    `;
-    statsBar.innerHTML = "";
+    // Close mobile menu on link click
+    document.querySelectorAll('.mobile-link, .mobile-cta').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+            burger.classList.remove('open');
+            burger.setAttribute('aria-expanded', 'false');
+            document.body.style.overflow = '';
+        });
+    });
 
-    try {
-        let url = `${API}/search?q=${encodeURIComponent(query)}&platforms=${platforms}&max_results=15`;
-        if (maxPrice) url += `&max_price=${maxPrice}`;
+    // Close on nav link click (desktop smooth scroll)
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('#')) {
+                e.preventDefault();
+                const target = document.querySelector(href);
+                if (target) {
+                    const offset = 80;
+                    const top = target.getBoundingClientRect().top + window.scrollY - offset;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                }
+            }
+        });
+    });
 
-        const resp = await fetch(url);
-        const data = await resp.json();
+    // Smooth scroll for all anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', (e) => {
+            const href = anchor.getAttribute('href');
+            if (href === '#') return;
+            const target = document.querySelector(href);
+            if (target) {
+                e.preventDefault();
+                const offset = 80;
+                const top = target.getBoundingClientRect().top + window.scrollY - offset;
+                window.scrollTo({ top, behavior: 'smooth' });
+            }
+        });
+    });
 
-        renderStats(data);
-        renderDeals(data.deals);
-    } catch (err) {
-        dealsGrid.innerHTML = `<div class="empty-state">Fehler bei der Suche: ${err.message}</div>`;
-    } finally {
-        searchBtn.disabled = false;
+    /* --- Intersection Observer – fade-up animations --- */
+    const fadeEls = document.querySelectorAll('.fade-up');
+
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.12,
+            rootMargin: '0px 0px -40px 0px'
+        });
+
+        fadeEls.forEach(el => observer.observe(el));
+    } else {
+        // Fallback: show all immediately
+        fadeEls.forEach(el => el.classList.add('visible'));
     }
-}
 
-function renderStats(data) {
-    const deals = data.deals || [];
-    const profitable = deals.filter((d) => d.profit && d.profit.profit_euro > 0);
-    const avgScore = deals.length
-        ? (deals.reduce((s, d) => s + d.deal_score, 0) / deals.length).toFixed(1)
-        : 0;
-    const bestDeal = deals.length ? Math.max(...deals.map((d) => d.deal_score)) : 0;
+    /* --- Active nav link on scroll --- */
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
 
-    statsBar.innerHTML = `
-        <div class="stat">
-            <div class="value">${data.total_results}</div>
-            <div class="label">Ergebnisse</div>
-        </div>
-        <div class="stat">
-            <div class="value" style="color:var(--green)">${profitable.length}</div>
-            <div class="label">Profitabel</div>
-        </div>
-        <div class="stat">
-            <div class="value">${avgScore}</div>
-            <div class="label">Avg Score</div>
-        </div>
-        <div class="stat">
-            <div class="value" style="color:var(--green)">${bestDeal}</div>
-            <div class="label">Bester Score</div>
-        </div>
-    `;
-}
+    const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const id = entry.target.getAttribute('id');
+                navLinks.forEach(link => {
+                    link.classList.toggle(
+                        'active',
+                        link.getAttribute('href') === `#${id}`
+                    );
+                });
+            }
+        });
+    }, { threshold: 0.4 });
 
-function renderDeals(deals) {
-    if (!deals || deals.length === 0) {
-        dealsGrid.innerHTML = `<div class="empty-state">Keine Deals gefunden. Versuche einen anderen Suchbegriff.</div>`;
-        return;
+    sections.forEach(s => sectionObserver.observe(s));
+
+    /* --- SHR card stagger animation --- */
+    const shrCards = document.querySelectorAll('.shr-card');
+    if ('IntersectionObserver' in window) {
+        const shrObs = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const cards = entry.target.querySelectorAll('.shr-card');
+                    cards.forEach((card, i) => {
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        }, i * 60);
+                    });
+                    shrObs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        const grid = document.querySelector('.shr-grid');
+        if (grid) {
+            shrCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(16px)';
+                card.style.transition = 'opacity .4s ease, transform .4s ease';
+            });
+            shrObs.observe(grid);
+        }
     }
 
-    dealsGrid.innerHTML = deals.map((deal) => renderDealCard(deal)).join("");
-}
+    /* --- Micro-interaction: button ripple --- */
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            const rect = btn.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            ripple.style.cssText = `
+                position:absolute;
+                border-radius:50%;
+                transform:scale(0);
+                animation:ripple .5s linear;
+                background:rgba(255,255,255,.25);
+                width:120px;height:120px;
+                left:${e.clientX - rect.left - 60}px;
+                top:${e.clientY - rect.top - 60}px;
+                pointer-events:none;
+            `;
+            if (getComputedStyle(btn).position === 'static') {
+                btn.style.position = 'relative';
+            }
+            btn.style.overflow = 'hidden';
+            btn.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 550);
+        });
+    });
 
-function renderDealCard(deal) {
-    const l = deal.listing;
-    const p = deal.profit;
-    const r = deal.risk;
-    const img = deal.image;
+    // Ripple keyframe (inject once)
+    if (!document.getElementById('ripple-style')) {
+        const style = document.createElement('style');
+        style.id = 'ripple-style';
+        style.textContent = `
+            @keyframes ripple {
+                to { transform: scale(2.5); opacity: 0; }
+            }
+            .nav-link.active {
+                color: var(--gold) !important;
+            }
+            .nav-link.active::after {
+                width: 100% !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
-    const isTop = deal.deal_score >= 90;
-    const scoreClass = deal.deal_score >= 90 ? "top" : deal.deal_score >= 70 ? "good" : deal.deal_score >= 50 ? "medium" : "bad";
-
-    const platformTag = l.platform === "ebay"
-        ? `<span class="tag ebay">eBay</span>`
-        : `<span class="tag kleinanzeigen">Kleinanzeigen</span>`;
-
-    const profitTag = p
-        ? p.profit_euro > 0
-            ? `<span class="tag profit">+${p.profit_euro}€ (${p.profit_percent}%)</span>`
-            : `<span class="tag loss">${p.profit_euro}€</span>`
-        : "";
-
-    const riskTag = r
-        ? `<span class="tag risk-${r.risk_level === 'niedrig' ? 'low' : r.risk_level === 'mittel' ? 'medium' : 'high'}">${r.risk_level}</span>`
-        : "";
-
-    const imageUrl = l.image_urls && l.image_urls.length > 0
-        ? l.image_urls[0]
-        : "";
-
-    const imageSrc = imageUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' fill='%23636e72'%3E%3Crect width='120' height='120' fill='%232a2d3a'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='14'%3EKein Bild%3C/text%3E%3C/svg%3E";
-
-    const linkHtml = l.url
-        ? `<a href="${l.url}" target="_blank" rel="noopener">${escapeHtml(l.title)}</a>`
-        : escapeHtml(l.title);
-
-    const conditionInfo = img ? `Zustand: ${img.condition_score}/10 | Vertrauen: ${img.trust_score}/10` : "";
-
-    return `
-        <div class="deal-card ${isTop ? "top-deal" : ""}">
-            <img class="deal-image" src="${imageSrc}" alt="${escapeHtml(l.title)}" loading="lazy" onerror="this.style.display='none'">
-            <div class="deal-info">
-                <h3>${linkHtml}</h3>
-                <div class="deal-meta">
-                    <span>Preis: ${l.price.toFixed(2)}€</span>
-                    ${p ? `<span>Verkauf: ~${p.estimated_sell_price.toFixed(2)}€</span>` : ""}
-                    ${p ? `<span>Gebühren: ${p.platform_fees.toFixed(2)}€</span>` : ""}
-                    ${l.location ? `<span>${escapeHtml(l.location)}</span>` : ""}
-                </div>
-                <div class="deal-tags">
-                    ${platformTag}
-                    ${profitTag}
-                    ${riskTag}
-                </div>
-                ${conditionInfo ? `<div class="deal-summary">${conditionInfo}</div>` : ""}
-                <div class="deal-summary">${escapeHtml(deal.summary)}</div>
-            </div>
-            <div class="deal-score-box">
-                <div class="score-circle ${scoreClass}">${deal.deal_score}</div>
-                <div style="margin-top:8px;font-size:0.75rem;color:var(--muted)">${escapeHtml(deal.deal_rating)}</div>
-            </div>
-        </div>
-    `;
-}
-
-function escapeHtml(text) {
-    if (!text) return "";
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
-}
+})();
