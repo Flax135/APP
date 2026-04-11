@@ -1,8 +1,10 @@
-import { loadFont } from "@remotion/google-fonts/Inter";
-
-const { fontFamily } = loadFont("normal", {
-  weights: ["400", "500", "600", "700", "800", "900"],
-});
+// Use a system font stack so the ad renders offline without downloading
+// Google Fonts (which is blocked in hermetic / sandboxed environments).
+// The stack prioritises Inter (if the OS has it) and falls back to
+// modern system UI fonts, which all look very similar at display weight.
+const fontFamily =
+  '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", ' +
+  '"Helvetica Neue", Arial, "Noto Sans", sans-serif';
 
 export const theme = {
   bg: "#0A0A0B",
