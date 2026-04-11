@@ -1,0 +1,27 @@
+{
+  "name": "flaxdesigning-ad",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cinematic Remotion advertising video for FlaxDesigning web design agency",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:vertical": "remotion render FlaxAdVertical out/flaxdesigning-vertical.mp4",
+    "render:horizontal": "remotion render FlaxAdHorizontal out/flaxdesigning-horizontal.mp4",
+    "render:all": "npm run render:vertical && npm run render:horizontal",
+    "still:cover": "remotion still FlaxAdHorizontal out/cover.png --frame=585",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.0",
+    "@remotion/google-fonts": "^4.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.5.0"
+  }
+}
