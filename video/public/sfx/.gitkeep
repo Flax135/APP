@@ -1,0 +1,6 @@
+# Drop optional one-shot SFX here:
+#   impact.mp3  — frame 12, text slam
+#   whoosh.mp3  — frame 150, scene transition
+#   rise.mp3    — frame 270, logo reveal
+#   ding.mp3    — frame 495, stat pop
+# See ../README.md for details.

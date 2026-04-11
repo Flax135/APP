@@ -3,3 +3,10 @@ out/
 .remotion/
 *.log
 .DS_Store
+
+# Audio assets are user-provided and not committed.
+# Drop files into public/music/ and public/sfx/ — see public/README.md.
+public/music/*
+public/sfx/*
+!public/music/.gitkeep
+!public/sfx/.gitkeep

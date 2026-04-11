@@ -33,3 +33,21 @@ export const SCENES = {
   results:      { from: 420, duration: 120 }, // 14.0 – 18.0s  — Ergebnis
   cta:          { from: 540, duration: 120 }, // 18.0 – 22.0s  — CTA
 } as const;
+
+// Audio configuration
+// Set `music.enabled = true` once you have dropped your background track
+// at `public/music/main.mp3`. See `public/README.md` for details.
+// SFX are optional and each can be toggled independently.
+export const AUDIO = {
+  music: {
+    enabled: false,
+    file: "music/main.mp3",
+    masterVolume: 0.6, // 0..1 — scale the entire envelope
+  },
+  sfx: {
+    impact:  { enabled: false, file: "sfx/impact.mp3",  frame: 12,  volume: 0.9 }, // Scene 1 — text slam
+    whoosh:  { enabled: false, file: "sfx/whoosh.mp3",  frame: 150, volume: 0.7 }, // Scene 3 — transition
+    riseUp:  { enabled: false, file: "sfx/rise.mp3",    frame: 270, volume: 0.6 }, // Scene 4 — reveal
+    ding:    { enabled: false, file: "sfx/ding.mp3",    frame: 495, volume: 0.5 }, // Scene 5 — stat pop
+  },
+} as const;

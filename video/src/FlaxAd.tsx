@@ -8,6 +8,7 @@ import { Scene4Presentation } from "./scenes/Scene4Presentation";
 import { Scene5Results } from "./scenes/Scene5Results";
 import { Scene6CTA } from "./scenes/Scene6CTA";
 import { GrainOverlay, Vignette, LightBeam } from "./components/overlays";
+import { AudioTrack } from "./components/AudioTrack";
 
 export const FlaxAd: React.FC = () => {
   return (
@@ -47,6 +48,8 @@ export const FlaxAd: React.FC = () => {
 
       <Vignette />
       <GrainOverlay />
+
+      <AudioTrack />
     </AbsoluteFill>
   );
 };

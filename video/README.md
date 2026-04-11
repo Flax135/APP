@@ -106,6 +106,34 @@ Definiert in `src/theme.ts`:
 | `textMuted`    | `#8A8A92`     | Subtext, Captions          |
 | `font`         | Inter         | Geladen via @remotion/google-fonts |
 
+## Audio / Soundtrack
+
+Der Ad hat eine vollständig vorbereitete Audio-Spur mit cinematischer
+Volume-Envelope (leiser Hook → Build-Up → Peak in Scene 5 → ducken im CTA).
+Sie ist per Feature-Flag deaktiviert, damit das Projekt sofort ohne Audio-Datei
+rendert.
+
+**Audio aktivieren — 3 Schritte:**
+
+1. **Track besorgen** (Royalty-Free, z. B. [Pixabay Music](https://pixabay.com/music/),
+   [Uppbeat](https://uppbeat.io/) oder der [YouTube Audio Library](https://www.youtube.com/audiolibrary)).
+   Stichwörter: *cinematic corporate uplifting*, *modern tech brand*,
+   *motivational future*.
+2. **Datei droppen** unter `video/public/music/main.mp3`
+   (≥ 22 s, 90–120 BPM, cinematic, keine Vocals).
+3. **Flag umlegen** in `src/theme.ts`:
+   ```ts
+   export const AUDIO = {
+     music: { enabled: true, ... },
+     ...
+   };
+   ```
+
+Siehe `public/README.md` für detaillierte Style-Guides, empfohlene Quellen
+und die optionalen SFX-Slots (Text-Slam-Impact, Whoosh, Riser, Ding).
+Der Render-Befehl bleibt derselbe — Remotion muxt das Audio automatisch
+in die MP4.
+
 ## Anpassen
 
 - **Farben** → `src/theme.ts`
