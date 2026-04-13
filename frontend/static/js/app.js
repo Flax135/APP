@@ -185,21 +185,25 @@ const resultInner    = $("#result-inner");
 const trimStart      = $("#trim-start");
 const trimEnd        = $("#trim-end");
 const speedSlider    = $("#speed-slider");
-const speedLabel     = $("#speed-label");
-const origVolSlider  = $("#orig-vol-slider");
-const origVolLabel   = $("#orig-vol-label");
-const musicVolSlider = $("#music-vol-slider");
-const musicVolLabel  = $("#music-vol-label");
-const titleText      = $("#title-text");
-const subtitleText   = $("#subtitle-text");
-const musicFileInput = $("#music-file-input");
-const musicPickBtn   = $("#music-pick-btn");
-const musicFileName  = $("#music-file-name");
-const processBtn     = $("#process-btn");
+const speedLabel       = $("#speed-label");
+const origVolSlider    = $("#orig-vol-slider");
+const origVolLabel     = $("#orig-vol-label");
+const musicVolSlider   = $("#music-vol-slider");
+const musicVolLabel    = $("#music-vol-label");
+const titleText        = $("#title-text");
+const subtitleText     = $("#subtitle-text");
+const musicFileInput   = $("#music-file-input");
+const musicPickBtn     = $("#music-pick-btn");
+const musicFileName    = $("#music-file-name");
+const processBtn       = $("#process-btn");
+const featureToggles   = $("#feature-toggles");
+const addClipBtn       = $("#add-clip-btn");
+const clipsList        = $("#clips-list");
 
 let selectedVideoFile = null;
 let selectedMusicFile = null;
 let selectedPreset    = "original";
+let clips             = [];  // [{start, end}]
 
 // --- Drop zone ---
 dropZone.addEventListener("click", () => videoFileInput.click());
@@ -223,12 +227,11 @@ function setVideoFile(file) {
     infoName.textContent = file.name;
     infoMeta.textContent = `${(file.size / 1024 / 1024).toFixed(1)} MB`;
     infoBar.style.display = "flex";
+    featureToggles.style.display = "block";
     videoSettings.style.display = "grid";
     videoActions.style.display = "flex";
     videoResult.style.display = "none";
     resultInner.innerHTML = "";
-
-    // Pre-fill trim end with a safe 60s default
     trimEnd.value = 60;
 }
 
@@ -236,10 +239,67 @@ clearBtn.addEventListener("click", () => {
     selectedVideoFile = null;
     videoFileInput.value = "";
     infoBar.style.display = "none";
+    featureToggles.style.display = "none";
     videoSettings.style.display = "none";
     videoActions.style.display = "none";
     videoResult.style.display = "none";
+    clips = [];
+    renderClips();
 });
+
+// --- Feature Toggles: grey out settings when disabled ---
+function setupToggle(toggleId, ...settingIds) {
+    const tog = $(`#${toggleId}`);
+    if (!tog) return;
+    const update = () => {
+        settingIds.forEach(sid => {
+            const el = $(sid);
+            if (el) el.closest(".settings-card, .setting-row")
+                ?.style && (el.style.opacity = tog.checked ? "" : "0.35");
+        });
+    };
+    tog.addEventListener("change", update);
+}
+setupToggle("tog-color",        "#preset-grid");
+setupToggle("tog-speed",        "#speed-slider");
+setupToggle("tog-title-text",   "#title-text");
+setupToggle("tog-subtitle-text","#subtitle-text");
+
+// --- Multi-Clip ---
+addClipBtn.addEventListener("click", () => {
+    clips.push({ start: 0, end: 10 });
+    renderClips();
+});
+
+function renderClips() {
+    if (!clips.length) {
+        clipsList.innerHTML = "";
+        return;
+    }
+    clipsList.innerHTML = clips.map((c, i) => `
+        <div class="clip-row" data-idx="${i}">
+            <span class="clip-num">#${i + 1}</span>
+            <input type="number" class="clip-start" value="${c.start}" min="0" step="0.5" placeholder="Start">
+            <span class="clip-sep">→</span>
+            <input type="number" class="clip-end" value="${c.end}" min="0" step="0.5" placeholder="Ende">
+            <span class="clip-unit">s</span>
+            <button class="clip-remove" data-idx="${i}">✕</button>
+        </div>
+    `).join("");
+
+    clipsList.querySelectorAll(".clip-start").forEach((el, i) => {
+        el.addEventListener("change", () => { clips[i].start = parseFloat(el.value) || 0; });
+    });
+    clipsList.querySelectorAll(".clip-end").forEach((el, i) => {
+        el.addEventListener("change", () => { clips[i].end = parseFloat(el.value) || 10; });
+    });
+    clipsList.querySelectorAll(".clip-remove").forEach(btn => {
+        btn.addEventListener("click", () => {
+            clips.splice(parseInt(btn.dataset.idx), 1);
+            renderClips();
+        });
+    });
+}
 
 // --- Sliders ---
 speedSlider.addEventListener("input", () => {
@@ -273,15 +333,26 @@ musicFileInput.addEventListener("change", () => {
 // --- Process ---
 processBtn.addEventListener("click", () => processVideo());
 
+function getToggle(id) {
+    const el = $(`#${id}`);
+    return el ? el.checked : true;
+}
+
 async function processVideo() {
     if (!selectedVideoFile) return;
 
     processBtn.disabled = true;
     videoResult.style.display = "block";
+
+    const hasSubs = getToggle("tog-subtitles");
+    const hasThumb = getToggle("tog-thumbnail");
     resultInner.innerHTML = `
         <div class="loading">
             <div class="spinner"></div>
-            <p>Video wird bearbeitet... Das kann 10–60 Sekunden dauern.</p>
+            <p>Video wird bearbeitet…${hasSubs ? " (inkl. KI-Untertitel)" : ""}</p>
+            <p style="font-size:0.8rem;color:var(--muted);margin-top:6px">
+                Das kann 20–90 Sekunden dauern.
+            </p>
         </div>
     `;
 
@@ -289,28 +360,39 @@ async function processVideo() {
     form.append("file", selectedVideoFile);
     if (selectedMusicFile) form.append("music", selectedMusicFile);
 
-    form.append("trim_start", trimStart.value || "0");
-    form.append("trim_end", trimEnd.value || "60");
-    form.append("speed", speedSlider.value);
-    form.append("color_preset", selectedPreset);
-    form.append("title_text", titleText.value.trim());
-    form.append("subtitle_text", subtitleText.value.trim());
-    form.append("original_audio_volume", origVolSlider.value);
-    form.append("music_volume", musicVolSlider.value);
+    // Schnitt
+    if (clips.length > 0) {
+        form.append("clips", JSON.stringify(clips.map(c => [c.start, c.end])));
+    } else {
+        form.append("trim_start", trimStart.value || "0");
+        form.append("trim_end",   trimEnd.value   || "60");
+    }
+
+    // Einstellungen
+    form.append("speed",                  speedSlider.value);
+    form.append("color_preset",           selectedPreset);
+    form.append("title_text",             titleText.value.trim());
+    form.append("subtitle_text",          subtitleText.value.trim());
+    form.append("original_audio_volume",  origVolSlider.value);
+    form.append("music_volume",           musicVolSlider.value);
+
+    // Feature-Flags
+    form.append("enable_crop",          getToggle("tog-crop"));
+    form.append("enable_color",         getToggle("tog-color"));
+    form.append("enable_speed",         getToggle("tog-speed"));
+    form.append("enable_subtitles",     getToggle("tog-subtitles"));
+    form.append("enable_thumbnail",     getToggle("tog-thumbnail"));
+    form.append("enable_title_text",    getToggle("tog-title-text"));
+    form.append("enable_subtitle_text", getToggle("tog-subtitle-text"));
 
     try {
-        const resp = await fetch(`${API}/video/process`, {
-            method: "POST",
-            body: form,
-        });
-
+        const resp = await fetch(`${API}/video/process`, { method: "POST", body: form });
         if (!resp.ok) {
             const err = await resp.json().catch(() => ({ detail: resp.statusText }));
             throw new Error(err.detail || "Unbekannter Fehler");
         }
-
         const data = await resp.json();
-        showDownload(data.job_id, data.filename);
+        showDownload(data.job_id, data.filename, data.has_thumbnail);
     } catch (err) {
         resultInner.innerHTML = `
             <div class="result-error">
@@ -322,7 +404,13 @@ async function processVideo() {
     }
 }
 
-function showDownload(jobId, filename) {
+function showDownload(jobId, filename, hasThumb) {
+    const thumbBtn = hasThumb
+        ? `<a class="btn-ghost" href="${API}/video/thumbnail/${jobId}" download="thumbnail_${jobId}.jpg" style="font-size:0.82rem">
+               Thumbnail
+           </a>`
+        : "";
+
     resultInner.innerHTML = `
         <div class="result-success">
             <div class="success-icon">
@@ -331,14 +419,17 @@ function showDownload(jobId, filename) {
                 </svg>
             </div>
             <div class="success-text">
-                <strong>Fertig!</strong> Dein TikTok/Reels-Video ist bereit.
+                <strong>Fertig!</strong> Dein Video ist bereit.
                 <div style="font-size:0.82rem;color:var(--muted);margin-top:3px">
-                    1080×1920 · 9:16 · MP4 · max. 60 Sek.
+                    1080×1920 · 9:16 · MP4${hasThumb ? " · Thumbnail inklusive" : ""}
                 </div>
             </div>
-            <a class="btn btn-download" href="${API}/video/download/${jobId}" download="${escapeHtml(filename)}">
-                Download
-            </a>
+            <div style="display:flex;gap:8px;align-items:center">
+                <a class="btn btn-download" href="${API}/video/download/${jobId}" download="${escapeHtml(filename)}">
+                    Video
+                </a>
+                ${thumbBtn}
+            </div>
         </div>
     `;
 }

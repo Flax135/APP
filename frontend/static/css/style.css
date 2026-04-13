@@ -566,6 +566,123 @@ header p {
 .btn-apply-style:hover { opacity: 0.85; }
 
 /* ============================================================
+   FEATURE TOGGLES
+   ============================================================ */
+.feature-toggles {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin-top: 12px;
+}
+
+.toggle-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.toggle-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    user-select: none;
+}
+
+.toggle-item:hover { border-color: var(--primary); }
+
+.toggle-item input[type="checkbox"] {
+    accent-color: var(--primary);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.toggle-label {
+    font-size: 0.8rem;
+    color: var(--text);
+}
+
+.toggle-badge {
+    font-size: 0.65rem;
+    background: linear-gradient(135deg, var(--primary), var(--green));
+    color: white;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+/* Multi-Clip */
+.setting-hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.btn-add-clip {
+    margin-top: 8px;
+    font-size: 0.82rem;
+    padding: 6px 14px;
+}
+
+.clip-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.clip-num {
+    font-size: 0.75rem;
+    color: var(--muted);
+    min-width: 20px;
+}
+
+.clip-row input[type="number"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 8px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    width: 68px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.clip-row input:focus { border-color: var(--primary); }
+
+.clip-sep {
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.clip-unit {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.clip-remove {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.15s;
+}
+
+.clip-remove:hover { color: var(--red); }
+
+/* ============================================================
    VIDEO EDITOR
    ============================================================ */
 .video-editor { padding: 20px 0; }
