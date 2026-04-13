@@ -8,9 +8,11 @@ from fastapi import APIRouter, BackgroundTasks, File, Form, HTTPException, Uploa
 from fastapi.responses import FileResponse
 
 from backend.app.services.video_service import VideoService
+from backend.app.services.style_analyzer import StyleAnalyzer
 
 router = APIRouter(prefix="/api/video", tags=["video"])
 video_service = VideoService()
+style_analyzer = StyleAnalyzer()
 
 ALLOWED_VIDEO_TYPES = {
     "video/mp4", "video/quicktime", "video/x-msvideo",
@@ -141,6 +143,55 @@ async def get_presets():
         "target_resolution": f"{video_service.TARGET_WIDTH}x{video_service.TARGET_HEIGHT}",
         "target_format": "9:16 (TikTok / Reels)",
     }
+
+
+@router.post("/analyze-style")
+async def analyze_style(
+    background_tasks: BackgroundTasks,
+    file: Optional[UploadFile] = File(None),
+    url: Optional[str] = Form(None),
+):
+    """
+    Analysiert den Editing-Stil eines Referenz-Videos.
+    Akzeptiert entweder eine lokale Datei (Upload) oder eine URL (YouTube, TikTok, etc.).
+    Gibt ein StyleProfile zurück mit Farbpalette, Schnittfrequenz, empfohlenen Einstellungen etc.
+    """
+    if not file and not url:
+        raise HTTPException(400, "Bitte eine Datei oder URL angeben")
+
+    tmp_path: Optional[str] = None
+
+    try:
+        if url:
+            # URL-Download via yt-dlp
+            url = url.strip()
+            if not url.startswith(("http://", "https://")):
+                raise HTTPException(400, "Ungültige URL")
+            try:
+                profile, tmp_path = await style_analyzer.analyze_from_url(url)
+            except RuntimeError as exc:
+                raise HTTPException(422, str(exc)) from exc
+
+        else:
+            # Lokale Datei
+            if file.content_type not in ALLOWED_VIDEO_TYPES:
+                raise HTTPException(400, "Nur Videodateien erlaubt (mp4, mov, avi, webm)")
+            uid = uuid.uuid4().hex[:8]
+            suffix = Path(file.filename or "video.mp4").suffix or ".mp4"
+            tmp_path = str(Path("uploads") / f"ref_{uid}{suffix}")
+            with open(tmp_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+            try:
+                profile = await style_analyzer.analyze_from_file(tmp_path)
+            except RuntimeError as exc:
+                raise HTTPException(422, str(exc)) from exc
+
+        return profile.to_dict()
+
+    finally:
+        if tmp_path:
+            background_tasks.add_task(_cleanup, tmp_path)
+            # Frames-Verzeichnisse werden im Service selbst bereinigt
 
 
 def _cleanup(*paths: str):

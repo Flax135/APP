@@ -43,6 +43,65 @@
         <div id="tab-video" class="tab-content">
             <div class="video-editor">
 
+                <!-- ── INSPIRATION PANEL ───────────────────────────── -->
+                <div class="inspire-panel">
+                    <div class="inspire-header" id="inspire-toggle">
+                        <div class="inspire-header-left">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                            <span>Stil-Inspiration</span>
+                            <span class="inspire-badge">Neu</span>
+                        </div>
+                        <span class="inspire-chevron" id="inspire-chevron">▼</span>
+                    </div>
+
+                    <div class="inspire-body" id="inspire-body">
+                        <p class="inspire-desc">
+                            Zeige Claude ein Referenz-Video — er analysiert den Editing-Stil und überträgt ihn auf dein Video.
+                            Funktioniert mit YouTube, TikTok, Instagram und lokalen Dateien.
+                        </p>
+
+                        <!-- Source Tabs -->
+                        <div class="inspire-tabs">
+                            <button class="inspire-tab active" data-inspire="url">URL (YouTube / TikTok / …)</button>
+                            <button class="inspire-tab" data-inspire="file">Lokale Datei</button>
+                        </div>
+
+                        <!-- URL Input -->
+                        <div id="inspire-url-section" class="inspire-section">
+                            <div class="inspire-url-row">
+                                <input type="text" id="inspire-url-input"
+                                    placeholder="https://www.youtube.com/watch?v=... oder TikTok-URL">
+                                <button class="btn btn-inspire" id="inspire-analyze-url-btn">Analysieren</button>
+                            </div>
+                            <p class="inspire-hint">Nur für Content analysieren, an dem du Rechte hast.</p>
+                        </div>
+
+                        <!-- File Input -->
+                        <div id="inspire-file-section" class="inspire-section" style="display:none">
+                            <div class="inspire-url-row">
+                                <input type="file" id="inspire-file-input" accept="video/*" hidden>
+                                <button class="btn-ghost" id="inspire-file-pick-btn">Referenz-Video wählen</button>
+                                <span id="inspire-file-name" class="file-name-label">Keine</span>
+                                <button class="btn btn-inspire" id="inspire-analyze-file-btn">Analysieren</button>
+                            </div>
+                        </div>
+
+                        <!-- Analysis Result -->
+                        <div id="inspire-result" style="display:none">
+                            <div class="inspire-result-card" id="inspire-result-card"></div>
+                            <div class="inspire-apply-row">
+                                <button class="btn btn-apply-style" id="inspire-apply-btn">
+                                    Diesen Stil auf mein Video anwenden
+                                </button>
+                                <button class="btn-ghost" id="inspire-reset-btn">Zurücksetzen</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- ── ENDE INSPIRATION PANEL ──────────────────────── -->
+
                 <!-- Upload Zone -->
                 <div class="video-upload-zone" id="video-drop-zone">
                     <input type="file" id="video-file-input" accept="video/*" hidden>
@@ -53,11 +112,11 @@
                             <line x1="12" y1="3" x2="12" y2="15"/>
                         </svg>
                     </div>
-                    <p class="upload-title">Video hier ablegen oder klicken</p>
+                    <p class="upload-title">Dein Video hier ablegen oder klicken</p>
                     <p class="upload-sub">MP4, MOV, AVI, WebM · max. 60 Sek. Ausgabe</p>
                 </div>
 
-                <!-- Video info bar (hidden until file selected) -->
+                <!-- Video info bar -->
                 <div class="video-info-bar" id="video-info-bar" style="display:none">
                     <span id="video-info-name"></span>
                     <span id="video-info-meta"></span>
@@ -67,10 +126,8 @@
                 <!-- Settings Grid -->
                 <div class="video-settings" id="video-settings" style="display:none">
 
-                    <!-- Column 1: Schnitt & Tempo -->
                     <div class="settings-card">
                         <h3 class="settings-title">Schnitt &amp; Tempo</h3>
-
                         <label class="setting-row">
                             <span>Start (Sek.)</span>
                             <input type="number" id="trim-start" value="0" min="0" step="0.5">
@@ -88,7 +145,6 @@
                         </label>
                     </div>
 
-                    <!-- Column 2: Farbe -->
                     <div class="settings-card">
                         <h3 class="settings-title">Farbpreset</h3>
                         <div class="preset-grid" id="preset-grid">
@@ -102,7 +158,6 @@
                         </div>
                     </div>
 
-                    <!-- Column 3: Text -->
                     <div class="settings-card">
                         <h3 class="settings-title">Text &amp; Overlays</h3>
                         <label class="setting-row column">
@@ -115,7 +170,6 @@
                         </label>
                     </div>
 
-                    <!-- Column 4: Audio -->
                     <div class="settings-card">
                         <h3 class="settings-title">Audio</h3>
                         <label class="setting-row">

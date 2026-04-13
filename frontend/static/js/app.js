@@ -342,3 +342,227 @@ function showDownload(jobId, filename) {
         </div>
     `;
 }
+
+// ============================================================
+// STIL-INSPIRATION
+// ============================================================
+const inspireToggle     = $("#inspire-toggle");
+const inspireBody       = $("#inspire-body");
+const inspireChevron    = $("#inspire-chevron");
+const inspireUrlSection = $("#inspire-url-section");
+const inspireFileSection= $("#inspire-file-section");
+const inspireUrlInput   = $("#inspire-url-input");
+const inspireAnalyzeUrl = $("#inspire-analyze-url-btn");
+const inspireFilePick   = $("#inspire-file-pick-btn");
+const inspireFileInput  = $("#inspire-file-input");
+const inspireFileName   = $("#inspire-file-name");
+const inspireAnalyzeFile= $("#inspire-analyze-file-btn");
+const inspireResult     = $("#inspire-result");
+const inspireResultCard = $("#inspire-result-card");
+const inspireApplyBtn   = $("#inspire-apply-btn");
+const inspireResetBtn   = $("#inspire-reset-btn");
+
+let currentStyleProfile = null;
+let isPanelOpen = false;
+
+// Toggle Panel
+inspireToggle.addEventListener("click", () => {
+    isPanelOpen = !isPanelOpen;
+    inspireBody.style.display = isPanelOpen ? "block" : "none";
+    inspireChevron.textContent = isPanelOpen ? "▲" : "▼";
+});
+
+// Source Tabs
+$$(".inspire-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+        $$(".inspire-tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        if (tab.dataset.inspire === "url") {
+            inspireUrlSection.style.display = "block";
+            inspireFileSection.style.display = "none";
+        } else {
+            inspireUrlSection.style.display = "none";
+            inspireFileSection.style.display = "block";
+        }
+    });
+});
+
+// File pick
+inspireFilePick.addEventListener("click", () => inspireFileInput.click());
+inspireFileInput.addEventListener("change", () => {
+    if (inspireFileInput.files[0]) {
+        inspireFileName.textContent = inspireFileInput.files[0].name;
+    }
+});
+
+// Analyze URL
+inspireAnalyzeUrl.addEventListener("click", async () => {
+    const url = inspireUrlInput.value.trim();
+    if (!url) return;
+    await runStyleAnalysis(null, url);
+});
+
+// Analyze File
+inspireAnalyzeFile.addEventListener("click", async () => {
+    const file = inspireFileInput.files[0];
+    if (!file) return;
+    await runStyleAnalysis(file, null);
+});
+
+// Apply style to editor settings
+inspireApplyBtn.addEventListener("click", () => {
+    if (!currentStyleProfile) return;
+    applyStyleProfile(currentStyleProfile);
+});
+
+// Reset
+inspireResetBtn.addEventListener("click", () => {
+    currentStyleProfile = null;
+    inspireResult.style.display = "none";
+    inspireResultCard.innerHTML = "";
+    inspireUrlInput.value = "";
+    inspireFileInput.value = "";
+    inspireFileName.textContent = "Keine";
+});
+
+async function runStyleAnalysis(file, url) {
+    const btn = file ? inspireAnalyzeFile : inspireAnalyzeUrl;
+    btn.disabled = true;
+    inspireResult.style.display = "block";
+    inspireResultCard.innerHTML = `
+        <div class="loading" style="padding:30px">
+            <div class="spinner"></div>
+            <p>Stil wird analysiert… Claude analysiert Schnitte, Farben und Ästhetik.</p>
+        </div>
+    `;
+
+    const form = new FormData();
+    if (file) {
+        form.append("file", file);
+    } else {
+        form.append("url", url);
+    }
+
+    try {
+        const resp = await fetch(`${API}/video/analyze-style`, {
+            method: "POST",
+            body: form,
+        });
+        if (!resp.ok) {
+            const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+            throw new Error(err.detail || "Analyse fehlgeschlagen");
+        }
+        const profile = await resp.json();
+        currentStyleProfile = profile;
+        renderStyleProfile(profile);
+    } catch (err) {
+        inspireResultCard.innerHTML = `
+            <div class="result-error">
+                <strong>Fehler:</strong> ${escapeHtml(err.message)}
+            </div>
+        `;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+function renderStyleProfile(p) {
+    const pacingColor = p.pacing === "fast" ? "var(--green)" : p.pacing === "slow" ? "var(--yellow)" : "var(--primary)";
+    const energyBar = Array.from({length: 10}, (_, i) =>
+        `<span class="energy-dot ${i < p.energy_level ? 'on' : ''}"></span>`
+    ).join("");
+
+    const swatches = (p.color_palette || []).slice(0, 6).map(
+        c => `<span class="color-swatch" style="background:${c}" title="${c}"></span>`
+    ).join("");
+
+    inspireResultCard.innerHTML = `
+        <div class="style-profile">
+            <div class="style-profile-header">
+                <div class="style-title">${escapeHtml(p.source_title)}</div>
+                <div class="style-meta">${p.duration}s · ${p.cut_count} Schnitte · Ø ${p.avg_shot_duration}s/Shot</div>
+            </div>
+
+            <div class="style-stats">
+                <div class="style-stat">
+                    <div class="style-stat-label">Pacing</div>
+                    <div class="style-stat-value" style="color:${pacingColor}">${p.pacing}</div>
+                </div>
+                <div class="style-stat">
+                    <div class="style-stat-label">Energie</div>
+                    <div class="energy-bar">${energyBar}</div>
+                </div>
+                <div class="style-stat">
+                    <div class="style-stat-label">Preset → </div>
+                    <div class="style-stat-value style-preset-tag">${p.recommended_preset}</div>
+                </div>
+                <div class="style-stat">
+                    <div class="style-stat-label">Speed → </div>
+                    <div class="style-stat-value">${p.recommended_speed}×</div>
+                </div>
+            </div>
+
+            ${swatches ? `
+            <div class="style-colors">
+                <div class="style-stat-label">Farbpalette</div>
+                <div class="color-swatches">${swatches}</div>
+            </div>` : ""}
+
+            ${p.style_description ? `
+            <div class="style-description">${escapeHtml(p.style_description)}</div>` : ""}
+
+            ${p.vision_notes ? `
+            <div class="style-notes">
+                <strong>Editing-Beobachtungen:</strong> ${escapeHtml(p.vision_notes)}
+            </div>` : ""}
+
+            ${p.hook_type && p.hook_type !== "unknown" ? `
+            <div class="style-tag-row">
+                <span class="style-tag">Hook: ${p.hook_type}</span>
+                <span class="style-tag">Musik: ${p.recommended_music_energy}</span>
+                ${p.text_style ? `<span class="style-tag">Text: ${escapeHtml(p.text_style.slice(0,40))}</span>` : ""}
+            </div>` : ""}
+        </div>
+    `;
+}
+
+function applyStyleProfile(p) {
+    // Farbpreset anwenden
+    if (p.recommended_preset) {
+        $$(".preset-btn").forEach((b) => b.classList.remove("active"));
+        const btn = $(`.preset-btn[data-preset="${p.recommended_preset}"]`);
+        if (btn) { btn.classList.add("active"); selectedPreset = p.recommended_preset; }
+    }
+    // Speed anwenden
+    if (p.recommended_speed) {
+        speedSlider.value = p.recommended_speed;
+        speedLabel.textContent = `${p.recommended_speed}×`;
+    }
+    // Text-Vorschläge
+    if (p.suggested_title_text && !titleText.value) {
+        titleText.value = p.suggested_title_text;
+    }
+    if (p.suggested_subtitle_text && !subtitleText.value) {
+        subtitleText.value = p.suggested_subtitle_text;
+    }
+    // Musik-Lautstärke: energetisch → mehr Musik
+    if (p.recommended_music_energy === "energetic") {
+        musicVolSlider.value = 0.4;
+        musicVolLabel.textContent = "40%";
+    } else if (p.recommended_music_energy === "calm") {
+        musicVolSlider.value = 0.2;
+        musicVolLabel.textContent = "20%";
+    }
+    // Settings einblenden wenn noch nicht sichtbar
+    if (videoSettings.style.display === "none" && selectedVideoFile) {
+        videoSettings.style.display = "grid";
+        videoActions.style.display = "flex";
+    }
+    // Feedback
+    inspireApplyBtn.textContent = "✓ Stil angewendet";
+    inspireApplyBtn.style.opacity = "0.7";
+    setTimeout(() => {
+        inspireApplyBtn.textContent = "Diesen Stil auf mein Video anwenden";
+        inspireApplyBtn.style.opacity = "";
+    }, 2000);
+}
