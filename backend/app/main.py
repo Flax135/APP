@@ -5,6 +5,7 @@ from fastapi.requests import Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.api.routes import router
+from backend.app.api.video_routes import router as video_router
 from backend.app.models.database import init_db
 from backend.app.config import settings
 
@@ -28,6 +29,7 @@ templates = Jinja2Templates(directory="frontend/templates")
 
 # API routes
 app.include_router(router)
+app.include_router(video_router)
 
 
 @app.on_event("startup")

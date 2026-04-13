@@ -255,7 +255,300 @@ header p {
     color: var(--muted);
 }
 
-/* Responsive */
+/* ============================================================
+   TAB NAVIGATION
+   ============================================================ */
+.tab-nav {
+    display: flex;
+    gap: 4px;
+    margin: 20px 0 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 10px 22px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border-radius: 8px 8px 0 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    margin-bottom: -1px;
+}
+
+.tab-btn:hover { color: var(--text); }
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ============================================================
+   VIDEO EDITOR
+   ============================================================ */
+.video-editor { padding: 20px 0; }
+
+/* Drop zone */
+.video-upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 48px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    color: var(--muted);
+}
+
+.video-upload-zone:hover,
+.video-upload-zone.drag-over {
+    border-color: var(--primary);
+    background: rgba(108, 92, 231, 0.05);
+    color: var(--text);
+}
+
+.upload-icon {
+    margin-bottom: 14px;
+    opacity: 0.5;
+}
+
+.video-upload-zone:hover .upload-icon,
+.video-upload-zone.drag-over .upload-icon { opacity: 0.9; }
+
+.upload-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.upload-sub { font-size: 0.82rem; }
+
+/* Info bar */
+.video-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+}
+
+.video-info-bar #video-info-name {
+    font-weight: 600;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.video-info-bar #video-info-meta { color: var(--muted); }
+
+/* Settings grid */
+.video-settings {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.settings-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.settings-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 14px;
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 0.88rem;
+    cursor: default;
+}
+
+.setting-row:last-child { margin-bottom: 0; }
+
+.setting-row.column {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.setting-row span { color: var(--muted); flex-shrink: 0; }
+
+.setting-row input[type="number"],
+.setting-row input[type="text"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 0.88rem;
+    outline: none;
+    width: 90px;
+    transition: border-color 0.2s;
+}
+
+.setting-row input[type="text"] { width: 100%; }
+.setting-row.column input[type="text"] { width: 100%; }
+
+.setting-row input:focus { border-color: var(--primary); }
+
+/* Slider */
+.slider-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.slider-group input[type="range"] {
+    flex: 1;
+    accent-color: var(--primary);
+    cursor: pointer;
+}
+
+.slider-group span {
+    color: var(--text) !important;
+    font-size: 0.82rem;
+    min-width: 38px;
+    text-align: right;
+}
+
+/* Preset grid */
+.preset-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.preset-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.preset-btn:hover { border-color: var(--primary); color: var(--text); }
+.preset-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+/* File pick */
+.file-pick-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 6px;
+}
+
+.file-name-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+}
+
+/* Buttons */
+.btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.btn-ghost:hover { border-color: var(--primary); color: var(--text); }
+
+/* Process button */
+.video-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.btn-process {
+    background: linear-gradient(135deg, var(--primary), var(--green));
+    padding: 14px 36px;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    border-radius: 10px;
+}
+
+.btn-download {
+    text-decoration: none;
+    padding: 10px 22px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+/* Result area */
+.video-result {
+    margin-top: 16px;
+}
+
+.result-success {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(0, 184, 148, 0.08);
+    border: 1px solid var(--green);
+    border-radius: 12px;
+    padding: 18px 20px;
+}
+
+.success-icon {
+    color: var(--green);
+    flex-shrink: 0;
+}
+
+.success-text { flex: 1; font-size: 0.95rem; }
+
+.result-error {
+    background: rgba(225, 112, 85, 0.08);
+    border: 1px solid var(--red);
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: var(--red);
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
 @media (max-width: 768px) {
     .deal-card {
         grid-template-columns: 80px 1fr;

@@ -10,24 +10,151 @@
     <div class="container">
         <header>
             <h1>Reselling Arbitrage Agent</h1>
-            <p>Finde profitable Deals auf eBay & Kleinanzeigen</p>
+            <p>Finde profitable Deals auf eBay &amp; Kleinanzeigen</p>
         </header>
 
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="Produkt suchen (z.B. iPhone 15, PS5, Nike Air Max...)" autofocus>
-            <input type="number" id="max-price" placeholder="Max. Preis €" min="0" step="1">
-            <select id="platform-select">
-                <option value="ebay,kleinanzeigen">Alle Plattformen</option>
-                <option value="ebay">Nur eBay</option>
-                <option value="kleinanzeigen">Nur Kleinanzeigen</option>
-            </select>
-            <button class="btn" id="search-btn">Suchen</button>
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="deals">Deals</button>
+            <button class="tab-btn" data-tab="video">Video Editor</button>
         </div>
 
-        <div id="stats-bar" class="stats-bar"></div>
-        <div id="deals-grid" class="deals-grid">
-            <div class="empty-state">
-                <p>Suche nach einem Produkt, um Deals zu finden.</p>
+        <!-- ===== DEALS TAB ===== -->
+        <div id="tab-deals" class="tab-content active">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Produkt suchen (z.B. iPhone 15, PS5, Nike Air Max...)" autofocus>
+                <input type="number" id="max-price" placeholder="Max. Preis €" min="0" step="1">
+                <select id="platform-select">
+                    <option value="ebay,kleinanzeigen">Alle Plattformen</option>
+                    <option value="ebay">Nur eBay</option>
+                    <option value="kleinanzeigen">Nur Kleinanzeigen</option>
+                </select>
+                <button class="btn" id="search-btn">Suchen</button>
+            </div>
+            <div id="stats-bar" class="stats-bar"></div>
+            <div id="deals-grid" class="deals-grid">
+                <div class="empty-state">
+                    <p>Suche nach einem Produkt, um Deals zu finden.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== VIDEO EDITOR TAB ===== -->
+        <div id="tab-video" class="tab-content">
+            <div class="video-editor">
+
+                <!-- Upload Zone -->
+                <div class="video-upload-zone" id="video-drop-zone">
+                    <input type="file" id="video-file-input" accept="video/*" hidden>
+                    <div class="upload-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <p class="upload-title">Video hier ablegen oder klicken</p>
+                    <p class="upload-sub">MP4, MOV, AVI, WebM · max. 60 Sek. Ausgabe</p>
+                </div>
+
+                <!-- Video info bar (hidden until file selected) -->
+                <div class="video-info-bar" id="video-info-bar" style="display:none">
+                    <span id="video-info-name"></span>
+                    <span id="video-info-meta"></span>
+                    <button class="btn-ghost" id="video-clear-btn">✕ Entfernen</button>
+                </div>
+
+                <!-- Settings Grid -->
+                <div class="video-settings" id="video-settings" style="display:none">
+
+                    <!-- Column 1: Schnitt & Tempo -->
+                    <div class="settings-card">
+                        <h3 class="settings-title">Schnitt &amp; Tempo</h3>
+
+                        <label class="setting-row">
+                            <span>Start (Sek.)</span>
+                            <input type="number" id="trim-start" value="0" min="0" step="0.5">
+                        </label>
+                        <label class="setting-row">
+                            <span>Ende (Sek.)</span>
+                            <input type="number" id="trim-end" value="60" min="1" step="0.5">
+                        </label>
+                        <label class="setting-row">
+                            <span>Geschwindigkeit</span>
+                            <div class="slider-group">
+                                <input type="range" id="speed-slider" min="0.25" max="2" step="0.25" value="1">
+                                <span id="speed-label">1×</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Column 2: Farbe -->
+                    <div class="settings-card">
+                        <h3 class="settings-title">Farbpreset</h3>
+                        <div class="preset-grid" id="preset-grid">
+                            <button class="preset-btn active" data-preset="original">Original</button>
+                            <button class="preset-btn" data-preset="vivid">Vivid</button>
+                            <button class="preset-btn" data-preset="cinematic">Cinematic</button>
+                            <button class="preset-btn" data-preset="warm">Warm</button>
+                            <button class="preset-btn" data-preset="cold">Cold</button>
+                            <button class="preset-btn" data-preset="vsco">VSCO</button>
+                            <button class="preset-btn" data-preset="dark">Dark</button>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: Text -->
+                    <div class="settings-card">
+                        <h3 class="settings-title">Text &amp; Overlays</h3>
+                        <label class="setting-row column">
+                            <span>Titel (oben)</span>
+                            <input type="text" id="title-text" placeholder="z.B. POV: Du findest den Deal..." maxlength="60">
+                        </label>
+                        <label class="setting-row column">
+                            <span>Untertitel (unten)</span>
+                            <input type="text" id="subtitle-text" placeholder="z.B. @deinhandle" maxlength="80">
+                        </label>
+                    </div>
+
+                    <!-- Column 4: Audio -->
+                    <div class="settings-card">
+                        <h3 class="settings-title">Audio</h3>
+                        <label class="setting-row">
+                            <span>Originalton</span>
+                            <div class="slider-group">
+                                <input type="range" id="orig-vol-slider" min="0" max="1" step="0.05" value="1">
+                                <span id="orig-vol-label">100%</span>
+                            </div>
+                        </label>
+                        <label class="setting-row">
+                            <span>Musik-Lautstärke</span>
+                            <div class="slider-group">
+                                <input type="range" id="music-vol-slider" min="0" max="1" step="0.05" value="0.3">
+                                <span id="music-vol-label">30%</span>
+                            </div>
+                        </label>
+                        <label class="setting-row column">
+                            <span>Hintergrundmusik (optional)</span>
+                            <div class="file-pick-row">
+                                <input type="file" id="music-file-input" accept="audio/*" hidden>
+                                <button class="btn-ghost" id="music-pick-btn">Datei wählen</button>
+                                <span id="music-file-name" class="file-name-label">Keine</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Process Button -->
+                <div class="video-actions" id="video-actions" style="display:none">
+                    <button class="btn btn-process" id="process-btn">
+                        Video für TikTok &amp; Reels bearbeiten
+                    </button>
+                </div>
+
+                <!-- Progress / Result -->
+                <div class="video-result" id="video-result" style="display:none">
+                    <div class="result-inner" id="result-inner"></div>
+                </div>
+
             </div>
         </div>
     </div>
