@@ -4,6 +4,8 @@ import { FlaxAd } from "./FlaxAd";
 import { DURATION_FRAMES, FPS } from "./theme";
 import { WellnessAd } from "./WellnessAd";
 import { W_DURATION, W_FPS } from "./wellnessTheme";
+import { EUVideo } from "./EUVideo";
+import { EU_DURATION, EU_FPS } from "./euTheme";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -40,6 +42,16 @@ export const RemotionRoot: React.FC = () => {
         component={WellnessAd}
         durationInFrames={W_DURATION}
         fps={W_FPS}
+        width={1920}
+        height={1080}
+      />
+
+      {/* ── EU documentary — 3-minute YouTube video ── */}
+      <Composition
+        id="EUVideo"
+        component={EUVideo}
+        durationInFrames={EU_DURATION}
+        fps={EU_FPS}
         width={1920}
         height={1080}
       />
