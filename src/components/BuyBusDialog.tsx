@@ -8,9 +8,11 @@ import { ActionForm, Modal, formatEuro } from "./ui";
 export function BuyBusDialog({
   models,
   cash,
+  playerLevel,
 }: {
   models: BusModel[];
   cash: number;
+  playerLevel: number;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -27,12 +29,15 @@ export function BuyBusDialog({
         <div className="space-y-3">
           {models.map((model) => {
             const affordable = cash >= model.price;
+            const levelLocked = playerLevel < model.required_level;
             return (
               <ActionForm
                 key={model.id}
                 action={buyBus}
                 onSuccess={() => setOpen(false)}
-                className="rounded-xl bg-slate-800 p-4 ring-1 ring-slate-700"
+                className={`rounded-xl bg-slate-800 p-4 ring-1 ring-slate-700 ${
+                  levelLocked ? "opacity-60" : ""
+                }`}
               >
                 {(pending) => (
                   <>
@@ -46,12 +51,17 @@ export function BuyBusDialog({
                               Gebraucht
                             </span>
                           )}
+                          {model.powertrain === "electric" && (
+                            <span className="ml-2 rounded bg-emerald-950 px-1.5 py-0.5 text-xs text-emerald-400">
+                              ⚡ Elektro
+                            </span>
+                          )}
                         </p>
                         <p className="mt-1 text-xs text-slate-400">{model.description}</p>
                         <p className="mt-2 text-xs text-slate-300">
                           {model.seats} Sitze ·{" "}
                           {model.powertrain === "electric"
-                            ? `⚡ ${model.consumption} kWh/100km · ${model.range_km} km Reichweite`
+                            ? `${model.consumption} kWh/100km · ${model.range_km} km Reichweite`
                             : `${model.consumption} l/100km`}{" "}
                           · {model.speed_kmh} km/h
                         </p>
@@ -60,10 +70,16 @@ export function BuyBusDialog({
                         <p className="font-bold text-amber-400">{formatEuro(model.price)}</p>
                         <button
                           type="submit"
-                          disabled={!affordable || pending}
+                          disabled={!affordable || levelLocked || pending}
                           className="mt-2 rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
                         >
-                          {pending ? "Kaufe…" : affordable ? "Kaufen" : "Zu teuer"}
+                          {pending
+                            ? "Kaufe…"
+                            : levelLocked
+                              ? `🔒 Level ${model.required_level}`
+                              : affordable
+                                ? "Kaufen"
+                                : "Zu teuer"}
                         </button>
                       </div>
                     </div>

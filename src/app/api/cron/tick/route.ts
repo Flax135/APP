@@ -7,6 +7,8 @@ import type {
   BusUpgrade,
   City,
   Driver,
+  GameEvent,
+  Loan,
   PlayerStats,
   Route,
   Upgrade,
@@ -40,13 +42,21 @@ export async function GET(request: Request) {
 
   let processed = 0;
   for (const player of (players ?? []) as PlayerStats[]) {
-    const [{ data: buses }, { data: routes }, { data: drivers }, { data: busUpgrades }] =
-      await Promise.all([
-        supabase.from("buses").select("*").eq("user_id", player.user_id),
-        supabase.from("routes").select("*").eq("user_id", player.user_id),
-        supabase.from("drivers").select("*").eq("user_id", player.user_id),
-        supabase.from("bus_upgrades").select("*").eq("user_id", player.user_id),
-      ]);
+    const [
+      { data: buses },
+      { data: routes },
+      { data: drivers },
+      { data: busUpgrades },
+      { data: loans },
+      { data: events },
+    ] = await Promise.all([
+      supabase.from("buses").select("*").eq("user_id", player.user_id),
+      supabase.from("routes").select("*").eq("user_id", player.user_id),
+      supabase.from("drivers").select("*").eq("user_id", player.user_id),
+      supabase.from("bus_upgrades").select("*").eq("user_id", player.user_id),
+      supabase.from("loans").select("*").eq("user_id", player.user_id).gt("remaining", 0),
+      supabase.from("game_events").select("*").eq("user_id", player.user_id),
+    ]);
 
     const comfortByBusId = new Map<string, BusComfort>();
     for (const owned of (busUpgrades ?? []) as BusUpgrade[]) {
@@ -67,6 +77,8 @@ export async function GET(request: Request) {
       buses: (buses ?? []) as Bus[],
       routes: (routes ?? []) as Route[],
       drivers: (drivers ?? []) as Driver[],
+      loans: (loans ?? []) as Loan[],
+      events: (events ?? []) as GameEvent[],
       modelsById,
       citiesById,
       comfortByBusId,
@@ -86,12 +98,21 @@ export async function GET(request: Request) {
         .update({ satisfaction: update.satisfaction })
         .eq("id", update.id);
     }
+    for (const update of result.loanUpdates) {
+      await supabase.from("loans").update({ remaining: update.remaining }).eq("id", update.id);
+    }
+    if (result.newEvents.length > 0) {
+      await supabase
+        .from("game_events")
+        .insert(result.newEvents.map((e) => ({ ...e, user_id: player.user_id })));
+    }
     await supabase
       .from("player_stats")
       .update({
         cash: player.cash + result.cashDelta,
         current_day: result.newDay,
         reputation: result.newReputation,
+        xp: player.xp + result.xpGained,
       })
       .eq("user_id", player.user_id);
 

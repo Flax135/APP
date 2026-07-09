@@ -3,9 +3,12 @@ import type {
   BusModel,
   City,
   Driver,
+  GameEvent,
+  Loan,
   Route,
   TransactionType,
 } from "@/lib/types";
+import { eventModifiers, maybeSpawnEvent, type NewGameEvent } from "./meta";
 import {
   BREAKDOWN_CONDITION_LOSS,
   CLASS_COMFORT_PENALTY,
@@ -41,6 +44,7 @@ export type TickTransaction = {
 
 export type BusUpdate = { id: string; condition: number };
 export type DriverUpdate = { id: string; satisfaction: number };
+export type LoanUpdate = { id: string; remaining: number };
 
 export type BusComfort = { comfortScore: number; upkeepPerDay: number };
 
@@ -48,9 +52,12 @@ export type TickResult = {
   newDay: number;
   cashDelta: number;
   newReputation: number;
+  xpGained: number;
   transactions: TickTransaction[];
   busUpdates: BusUpdate[];
   driverUpdates: DriverUpdate[];
+  loanUpdates: LoanUpdate[];
+  newEvents: NewGameEvent[];
   summary: {
     passengers: number;
     revenue: number;
@@ -76,6 +83,8 @@ export function processDay(input: {
   buses: Bus[];
   routes: Route[];
   drivers: Driver[];
+  loans: Loan[];
+  events: GameEvent[];
   modelsById: Map<string, BusModel>;
   citiesById: Map<string, City>;
   comfortByBusId: Map<string, BusComfort>;
@@ -86,6 +95,8 @@ export function processDay(input: {
     buses,
     routes,
     drivers,
+    loans,
+    events,
     modelsById,
     citiesById,
     comfortByBusId,
@@ -103,7 +114,8 @@ export function processDay(input: {
   const driverByBusId = new Map(
     drivers.filter((d) => d.assigned_bus_id).map((d) => [d.assigned_bus_id!, d])
   );
-  const repFactor = reputationDemandFactor(reputation);
+  const modifiers = eventModifiers(events, day);
+  const repFactor = reputationDemandFactor(reputation) * modifiers.demandFactor;
 
   const depotFee = (bus: Bus, reason: string) => {
     transactions.push({
@@ -162,7 +174,9 @@ export function processDay(input: {
     // ---------- Panne? ----------
     const condition = Number(bus.condition);
     const breakdown =
-      Math.random() < breakdownProbability(condition, model, driver.experience);
+      Math.random() <
+      breakdownProbability(condition, model, driver.experience) *
+        modifiers.breakdownFactor;
     if (breakdown) {
       breakdownsTotal++;
       trips = Math.max(1, Math.ceil(trips / 2)); // halber Tag fällt aus
@@ -243,7 +257,9 @@ export function processDay(input: {
     }
 
     const kmDriven = trips * route.distance_km;
-    const energy = Math.round(energyCost(kmDriven, model, bus.fuel_type));
+    const energy = Math.round(
+      energyCost(kmDriven, model, bus.fuel_type) * modifiers.energyFactor
+    );
     const maintenance = Math.round(kmDriven * MAINTENANCE_COST_PER_KM);
     const routeLabel = `${origin.name} – ${dest.name}`;
 
@@ -327,6 +343,28 @@ export function processDay(input: {
     satisfactionScores.push(score);
   }
 
+  // ---------- Kreditraten (fixe Verbindlichkeit, unabhängig vom Betrieb) ----------
+  const loanUpdates: LoanUpdate[] = [];
+  for (const loan of loans) {
+    if (loan.remaining <= 0) continue;
+    const payment = Math.min(loan.daily_payment, loan.remaining);
+    transactions.push({
+      day,
+      type: "loan_payment",
+      amount: -payment,
+      description: `Kreditrate (Rest ${(loan.remaining - payment).toLocaleString("de-DE")} €)`,
+    });
+    loanUpdates.push({ id: loan.id, remaining: loan.remaining - payment });
+  }
+
+  // ---------- Neues Zufallsereignis? (gilt ab morgen) ----------
+  const newEvents: NewGameEvent[] = [];
+  const hasOngoingEvent = events.some((e) => e.day_end >= currentDay + 1);
+  if (!hasOngoingEvent) {
+    const spawned = maybeSpawnEvent(currentDay);
+    if (spawned) newEvents.push(spawned);
+  }
+
   // ---------- Reputation: träge Richtung Tagesdurchschnitt ----------
   let newReputation = reputation;
   if (satisfactionScores.length > 0) {
@@ -344,9 +382,12 @@ export function processDay(input: {
     newDay: currentDay + 1,
     cashDelta,
     newReputation,
+    xpGained: passengersTotal, // 1 XP pro befördertem Fahrgast
     transactions,
     busUpdates,
     driverUpdates,
+    loanUpdates,
+    newEvents,
     summary: {
       passengers: passengersTotal,
       revenue: revenueTotal,

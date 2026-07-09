@@ -1,8 +1,9 @@
 # 🚌 BusTycoon – Busunternehmen-Manager
 
 Wirtschaftssimulation im Browser: Du leitest ein Fernbus-Unternehmen. Starte mit
-25.000 € und einem gebrauchten Setra, eröffne Linien zwischen deutschen Städten,
-setze Ticketpreise und bring dein Unternehmen in die schwarzen Zahlen.
+25.000 € und einem gebrauchten Setra, eröffne Linien zwischen Städten in
+Deutschland, Österreich und der Schweiz, setze Ticketpreise und bring dein
+Unternehmen in die schwarzen Zahlen.
 
 **Stack:** Next.js 15 (App Router) · Supabase (Auth + Postgres) · Tailwind CSS · TypeScript · Vercel
 
@@ -37,7 +38,21 @@ setze Ticketpreise und bring dein Unternehmen in die schwarzen Zahlen.
   Fahrerzufriedenheit; träge geglättete Sterne-Bewertung (1–5) wirkt als
   Nachfrage-Multiplikator (3★ = ×1,0 · 5★ = ×1,2)
 
-Phase 3 (Kredite, Events, Expansion, Achievements) folgt.
+## Phase 3 (Meta-Layer)
+
+- ✅ **Kredite & Bonität:** Bonität (5–95) aus Reputation, Liquidität und
+  bestehenden Schulden bestimmt den Zins (6–22 %). Drei Kreditgrößen
+  (25 k/100 k/300 k, level-gated), max. 2 gleichzeitig; Raten werden im Tick
+  täglich fällig – auch wenn kein Bus fährt
+- ✅ **Zufallsereignisse:** Spritpreis-Spike (+30–60 % Energie), Sonderfeiertag
+  (+25–50 % Nachfrage), Unwetter (−40 % Nachfrage, erhöhtes Pannenrisiko);
+  ~18 % Chance/Tag, 2–4 Tage Dauer, Banner im Dashboard
+- ✅ **Expansion:** Österreich (5 Städte, ab Level 3, 150 k €) und Schweiz
+  (4 Städte, ab Level 4, 250 k €) freischaltbar; eigene Werkstätten pro Region
+  (120 k €): Service 30 % günstiger und ohne Ausfalltag
+- ✅ **Level-System:** 1 XP pro befördertem Fahrgast, Level = 1 + ⌊√(XP/500)⌋;
+  schaltet Busmodelle (bis Level 6), Kredite und Regionen frei; XP-Fortschritt
+  im Header, berechnete Erfolge (Schwarze Zahlen, Millionär, …) im Dashboard
 
 ## Setup
 
@@ -45,8 +60,9 @@ Phase 3 (Kredite, Events, Expansion, Achievements) folgt.
 
 1. Projekt auf [supabase.com](https://supabase.com) anlegen
 2. Im SQL-Editor die Migrationen **in Reihenfolge** ausführen:
-   `supabase/migrations/0001_phase1_schema.sql`, dann
-   `supabase/migrations/0002_phase2_depth.sql`
+   `supabase/migrations/0001_phase1_schema.sql`,
+   `supabase/migrations/0002_phase2_depth.sql`,
+   `supabase/migrations/0003_phase3_meta.sql`
    (legen Tabellen, RLS-Policies und Seed-Daten an)
 3. Unter **Authentication → Providers** E-Mail/Passwort aktivieren.
    Für schnelles lokales Testen „Confirm email“ deaktivieren.

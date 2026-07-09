@@ -13,6 +13,16 @@ import {
   STARTING_CASH,
 } from "@/lib/game/constants";
 import { routeDistanceKm, serviceCost } from "@/lib/game/economy";
+import {
+  MAX_ACTIVE_LOANS,
+  REGIONS,
+  WORKSHOP_COST,
+  WORKSHOP_SERVICE_DISCOUNT,
+  creditScore,
+  levelForXp,
+  loanOffers,
+  totalDebt,
+} from "@/lib/game/meta";
 import { processDay, type BusComfort } from "@/lib/game/tick";
 import type {
   Bus,
@@ -21,7 +31,10 @@ import type {
   City,
   Driver,
   DriverExperience,
+  GameEvent,
+  Loan,
   PlayerStats,
+  RegionId,
   Route,
   Upgrade,
 } from "@/lib/types";
@@ -114,6 +127,13 @@ export async function buyBus(formData: FormData): Promise<ActionResult> {
   const typedModel = model as BusModel;
   const typedStats = stats as PlayerStats;
 
+  const level = levelForXp(typedStats.xp);
+  if (level < typedModel.required_level) {
+    return {
+      ok: false,
+      error: `${typedModel.name} wird erst ab Level ${typedModel.required_level} freigeschaltet.`,
+    };
+  }
   if (typedStats.cash < typedModel.price) {
     return { ok: false, error: "Nicht genug Geld für diesen Bus." };
   }
@@ -158,13 +178,23 @@ export async function createRoute(formData: FormData): Promise<ActionResult> {
 
   const { supabase, user } = await requireUser();
 
-  const { data: cities } = await supabase
-    .from("cities")
-    .select("*")
-    .in("id", [originId, destId]);
+  const [{ data: cities }, { data: stats }] = await Promise.all([
+    supabase.from("cities").select("*").in("id", [originId, destId]),
+    supabase.from("player_stats").select("*").eq("user_id", user.id).single(),
+  ]);
   const origin = (cities as City[] | null)?.find((c) => c.id === originId);
   const dest = (cities as City[] | null)?.find((c) => c.id === destId);
-  if (!origin || !dest) return { ok: false, error: "Stadt nicht gefunden." };
+  if (!origin || !dest || !stats) return { ok: false, error: "Stadt nicht gefunden." };
+
+  const unlocked = (stats as PlayerStats).unlocked_regions;
+  for (const city of [origin, dest]) {
+    if (!unlocked.includes(city.region)) {
+      return {
+        ok: false,
+        error: `${city.name} liegt in ${REGIONS[city.region].name} – Region zuerst freischalten.`,
+      };
+    }
+  }
 
   // Duplikate (beide Richtungen) verhindern
   const { data: existing } = await supabase
@@ -358,7 +388,10 @@ export async function buyUpgrade(formData: FormData): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Werkstatt-Service: Zustand auf 100 %, Bus fällt einen Tag aus */
+/**
+ * Werkstatt-Service: Zustand auf 100 %. In einer Fremdwerkstatt fällt der Bus
+ * einen Tag aus; mit eigener Werkstatt in der Region über Nacht und 30 % günstiger.
+ */
 export async function serviceBus(formData: FormData): Promise<ActionResult> {
   const busId = String(formData.get("bus_id") ?? "");
   const { supabase, user } = await requireUser();
@@ -387,7 +420,31 @@ export async function serviceBus(formData: FormData): Promise<ActionResult> {
     return { ok: false, error: "Der Bus steht bereits in der Werkstatt." };
   }
 
-  const cost = serviceCost(Number(typedBus.condition), typedBus.bus_models);
+  // Deckt eine eigene Werkstatt den Bus ab?
+  let ownWorkshop = false;
+  if (typedBus.assigned_route_id) {
+    const { data: route } = await supabase
+      .from("routes")
+      .select("origin_city_id, dest_city_id")
+      .eq("id", typedBus.assigned_route_id)
+      .single();
+    if (route) {
+      const { data: routeCities } = await supabase
+        .from("cities")
+        .select("region")
+        .in("id", [route.origin_city_id, route.dest_city_id]);
+      ownWorkshop = ((routeCities ?? []) as { region: RegionId }[]).some((c) =>
+        typedStats.workshops.includes(c.region)
+      );
+    }
+  } else {
+    ownWorkshop = typedStats.workshops.length > 0;
+  }
+
+  const baseCost = serviceCost(Number(typedBus.condition), typedBus.bus_models);
+  const cost = ownWorkshop
+    ? Math.round(baseCost * (1 - WORKSHOP_SERVICE_DISCOUNT))
+    : baseCost;
   if (typedStats.cash < cost) {
     return { ok: false, error: `Nicht genug Geld: Der Service kostet ${cost} €.` };
   }
@@ -396,7 +453,7 @@ export async function serviceBus(formData: FormData): Promise<ActionResult> {
     .from("buses")
     .update({
       condition: 100,
-      in_maintenance_until_day: typedStats.current_day + 1,
+      in_maintenance_until_day: ownWorkshop ? null : typedStats.current_day + 1,
     })
     .eq("id", busId)
     .eq("user_id", user.id);
@@ -411,7 +468,156 @@ export async function serviceBus(formData: FormData): Promise<ActionResult> {
     day: typedStats.current_day,
     type: "maintenance_service",
     amount: -cost,
-    description: `Werkstatt-Service: ${typedBus.name} (1 Tag Ausfall)`,
+    description: ownWorkshop
+      ? `Service in eigener Werkstatt: ${typedBus.name} (über Nacht)`
+      : `Werkstatt-Service: ${typedBus.name} (1 Tag Ausfall)`,
+  });
+
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/** Kredit aufnehmen (Konditionen abhängig von der Bonität) */
+export async function takeLoan(formData: FormData): Promise<ActionResult> {
+  const offerId = String(formData.get("offer_id") ?? "");
+  const { supabase, user } = await requireUser();
+
+  const [{ data: stats }, { data: loans }] = await Promise.all([
+    supabase.from("player_stats").select("*").eq("user_id", user.id).single(),
+    supabase.from("loans").select("*").eq("user_id", user.id),
+  ]);
+  if (!stats) return { ok: false, error: "Spielstand nicht gefunden." };
+
+  const typedStats = stats as PlayerStats;
+  const activeLoans = ((loans ?? []) as Loan[]).filter((l) => l.remaining > 0);
+  if (activeLoans.length >= MAX_ACTIVE_LOANS) {
+    return { ok: false, error: `Maximal ${MAX_ACTIVE_LOANS} Kredite gleichzeitig.` };
+  }
+
+  const score = creditScore({
+    cash: typedStats.cash,
+    reputation: Number(typedStats.reputation),
+    totalDebt: totalDebt(activeLoans),
+  });
+  const offer = loanOffers(score).find((o) => o.id === offerId);
+  if (!offer) return { ok: false, error: "Kreditangebot nicht gefunden." };
+
+  if (levelForXp(typedStats.xp) < offer.minLevel) {
+    return { ok: false, error: `Dieser Kredit erfordert Level ${offer.minLevel}.` };
+  }
+
+  const { error } = await supabase.from("loans").insert({
+    user_id: user.id,
+    principal: offer.principal,
+    remaining: Math.round(offer.principal * (1 + offer.interestTotalPct / 100)),
+    daily_payment: offer.dailyPayment,
+    interest_total_pct: offer.interestTotalPct,
+    term_days: offer.termDays,
+    taken_on_day: typedStats.current_day,
+  });
+  if (error) return { ok: false, error: "Kredit konnte nicht aufgenommen werden." };
+
+  await supabase
+    .from("player_stats")
+    .update({ cash: typedStats.cash + offer.principal })
+    .eq("user_id", user.id);
+
+  await supabase.from("transactions").insert({
+    user_id: user.id,
+    day: typedStats.current_day,
+    type: "loan_payout",
+    amount: offer.principal,
+    description: `${offer.label}: Auszahlung (${offer.interestTotalPct} % Zins, ${offer.termDays} Tage)`,
+  });
+
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/** Region freischalten (Level + Einmalzahlung) */
+export async function unlockRegion(formData: FormData): Promise<ActionResult> {
+  const region = String(formData.get("region") ?? "") as RegionId;
+  if (!REGIONS[region]) return { ok: false, error: "Unbekannte Region." };
+
+  const { supabase, user } = await requireUser();
+  const { data: stats } = await supabase
+    .from("player_stats")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+  if (!stats) return { ok: false, error: "Spielstand nicht gefunden." };
+
+  const typedStats = stats as PlayerStats;
+  const info = REGIONS[region];
+
+  if (typedStats.unlocked_regions.includes(region)) {
+    return { ok: false, error: "Region ist bereits freigeschaltet." };
+  }
+  if (levelForXp(typedStats.xp) < info.minLevel) {
+    return { ok: false, error: `${info.name} erfordert Level ${info.minLevel}.` };
+  }
+  if (typedStats.cash < info.unlockCost) {
+    return { ok: false, error: `Nicht genug Geld: Die Expansion kostet ${info.unlockCost.toLocaleString("de-DE")} €.` };
+  }
+
+  await supabase
+    .from("player_stats")
+    .update({
+      cash: typedStats.cash - info.unlockCost,
+      unlocked_regions: [...typedStats.unlocked_regions, region],
+    })
+    .eq("user_id", user.id);
+
+  await supabase.from("transactions").insert({
+    user_id: user.id,
+    day: typedStats.current_day,
+    type: "region_unlock",
+    amount: -info.unlockCost,
+    description: `Expansion: ${info.name} freigeschaltet`,
+  });
+
+  revalidatePath("/dashboard");
+  return { ok: true };
+}
+
+/** Eigene Werkstatt in einer freigeschalteten Region bauen */
+export async function buyWorkshop(formData: FormData): Promise<ActionResult> {
+  const region = String(formData.get("region") ?? "") as RegionId;
+  if (!REGIONS[region]) return { ok: false, error: "Unbekannte Region." };
+
+  const { supabase, user } = await requireUser();
+  const { data: stats } = await supabase
+    .from("player_stats")
+    .select("*")
+    .eq("user_id", user.id)
+    .single();
+  if (!stats) return { ok: false, error: "Spielstand nicht gefunden." };
+
+  const typedStats = stats as PlayerStats;
+  if (!typedStats.unlocked_regions.includes(region)) {
+    return { ok: false, error: "Region zuerst freischalten." };
+  }
+  if (typedStats.workshops.includes(region)) {
+    return { ok: false, error: "Hier steht bereits eine Werkstatt." };
+  }
+  if (typedStats.cash < WORKSHOP_COST) {
+    return { ok: false, error: `Nicht genug Geld: Die Werkstatt kostet ${WORKSHOP_COST.toLocaleString("de-DE")} €.` };
+  }
+
+  await supabase
+    .from("player_stats")
+    .update({
+      cash: typedStats.cash - WORKSHOP_COST,
+      workshops: [...typedStats.workshops, region],
+    })
+    .eq("user_id", user.id);
+
+  await supabase.from("transactions").insert({
+    user_id: user.id,
+    day: typedStats.current_day,
+    type: "workshop_purchase",
+    amount: -WORKSHOP_COST,
+    description: `Werkstatt gebaut: ${REGIONS[region].name}`,
   });
 
   revalidatePath("/dashboard");
@@ -526,6 +732,8 @@ export async function advanceDay(): Promise<ActionResult> {
     { data: buses },
     { data: routes },
     { data: drivers },
+    { data: loans },
+    { data: events },
     { data: models },
     { data: cities },
     { data: upgrades },
@@ -535,6 +743,8 @@ export async function advanceDay(): Promise<ActionResult> {
     supabase.from("buses").select("*").eq("user_id", user.id),
     supabase.from("routes").select("*").eq("user_id", user.id),
     supabase.from("drivers").select("*").eq("user_id", user.id),
+    supabase.from("loans").select("*").eq("user_id", user.id).gt("remaining", 0),
+    supabase.from("game_events").select("*").eq("user_id", user.id),
     supabase.from("bus_models").select("*"),
     supabase.from("cities").select("*"),
     supabase.from("upgrades").select("*"),
@@ -550,6 +760,8 @@ export async function advanceDay(): Promise<ActionResult> {
     buses: (buses ?? []) as Bus[],
     routes: (routes ?? []) as Route[],
     drivers: (drivers ?? []) as Driver[],
+    loans: (loans ?? []) as Loan[],
+    events: (events ?? []) as GameEvent[],
     modelsById: new Map(((models ?? []) as BusModel[]).map((m) => [m.id, m])),
     citiesById: new Map(((cities ?? []) as City[]).map((c) => [c.id, c])),
     comfortByBusId: buildComfortMap(
@@ -577,12 +789,25 @@ export async function advanceDay(): Promise<ActionResult> {
       .eq("id", update.id)
       .eq("user_id", user.id);
   }
+  for (const update of result.loanUpdates) {
+    await supabase
+      .from("loans")
+      .update({ remaining: update.remaining })
+      .eq("id", update.id)
+      .eq("user_id", user.id);
+  }
+  if (result.newEvents.length > 0) {
+    await supabase
+      .from("game_events")
+      .insert(result.newEvents.map((e) => ({ ...e, user_id: user.id })));
+  }
   await supabase
     .from("player_stats")
     .update({
       cash: typedStats.cash + result.cashDelta,
       current_day: result.newDay,
       reputation: result.newReputation,
+      xp: typedStats.xp + result.xpGained,
     })
     .eq("user_id", user.id);
 

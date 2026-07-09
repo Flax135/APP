@@ -1,19 +1,32 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { signout } from "@/app/login/actions";
+import { AchievementsPanel } from "@/components/AchievementsPanel";
 import { AdvanceDayButton } from "@/components/AdvanceDayButton";
 import { BuyBusDialog } from "@/components/BuyBusDialog";
 import { DriversPanel } from "@/components/DriversPanel";
+import { EventBanner } from "@/components/EventBanner";
+import { ExpansionPanel } from "@/components/ExpansionPanel";
+import { FinancePanel } from "@/components/FinancePanel";
 import { FleetPanel } from "@/components/FleetPanel";
 import { NewRouteDialog } from "@/components/NewRouteDialog";
 import { Onboarding } from "@/components/Onboarding";
 import { RoutesPanel } from "@/components/RoutesPanel";
+import {
+  creditScore,
+  levelForXp,
+  loanOffers,
+  totalDebt,
+  xpForLevel,
+} from "@/lib/game/meta";
 import type {
   Bus,
   BusModel,
   BusUpgrade,
   City,
   Driver,
+  GameEvent,
+  Loan,
   PlayerStats,
   Route,
   Transaction,
@@ -41,6 +54,10 @@ const TYPE_LABELS: Record<Transaction["type"], string> = {
   maintenance_service: "Werkstatt",
   repair: "Reparatur",
   severance: "Abfindung",
+  loan_payout: "Kredit",
+  loan_payment: "Kreditrate",
+  region_unlock: "Expansion",
+  workshop_purchase: "Werkstattbau",
 };
 
 export default async function DashboardPage() {
@@ -67,6 +84,8 @@ export default async function DashboardPage() {
     { data: driversData },
     { data: upgradesData },
     { data: busUpgradesData },
+    { data: loansData },
+    { data: eventsData },
     { data: transactionsData },
   ] = await Promise.all([
     supabase.from("buses").select("*").eq("user_id", user.id).order("created_at"),
@@ -76,6 +95,12 @@ export default async function DashboardPage() {
     supabase.from("drivers").select("*").eq("user_id", user.id).order("created_at"),
     supabase.from("upgrades").select("*").order("price"),
     supabase.from("bus_upgrades").select("*").eq("user_id", user.id),
+    supabase.from("loans").select("*").eq("user_id", user.id).gt("remaining", 0),
+    supabase
+      .from("game_events")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("day_end", stats.current_day),
     supabase
       .from("transactions")
       .select("*")
@@ -91,12 +116,35 @@ export default async function DashboardPage() {
   const drivers = (driversData ?? []) as Driver[];
   const upgrades = (upgradesData ?? []) as Upgrade[];
   const busUpgrades = (busUpgradesData ?? []) as BusUpgrade[];
+  const loans = (loansData ?? []) as Loan[];
+  const events = (eventsData ?? []) as GameEvent[];
   const transactions = (transactionsData ?? []) as Transaction[];
 
   const busUpgradeIds: Record<string, string[]> = {};
   for (const owned of busUpgrades) {
     (busUpgradeIds[owned.bus_id] ??= []).push(owned.upgrade_id);
   }
+
+  // Nur Städte in freigeschalteten Regionen für neue Linien
+  const availableCities = cities.filter((c) =>
+    stats.unlocked_regions.includes(c.region)
+  );
+
+  // Level & Bonität
+  const level = levelForXp(stats.xp);
+  const nextLevelXp = xpForLevel(level + 1);
+  const levelProgress = Math.min(
+    100,
+    Math.round(
+      ((stats.xp - xpForLevel(level)) / (nextLevelXp - xpForLevel(level))) * 100
+    )
+  );
+  const score = creditScore({
+    cash: stats.cash,
+    reputation: Number(stats.reputation),
+    totalDebt: totalDebt(loans),
+  });
+  const offers = loanOffers(score);
 
   // Bilanz des letzten abgeschlossenen Tages (nur operative Posten)
   const lastDay = stats.current_day - 1;
@@ -105,6 +153,9 @@ export default async function DashboardPage() {
     "starting_capital",
     "upgrade_purchase",
     "severance",
+    "loan_payout",
+    "region_unlock",
+    "workshop_purchase",
   ];
   const lastDayResult = transactions
     .filter((t) => t.day === lastDay && !nonOperative.includes(t.type))
@@ -135,7 +186,15 @@ export default async function DashboardPage() {
             <span className="text-2xl">🚌</span>
             <div>
               <h1 className="font-bold leading-tight">{stats.company_name}</h1>
-              <p className="text-xs text-slate-400">Tag {stats.current_day}</p>
+              <p className="text-xs text-slate-400">
+                Tag {stats.current_day} · Level {level}
+                <span className="ml-2 inline-block h-1.5 w-16 overflow-hidden rounded-full bg-slate-700 align-middle">
+                  <span
+                    className="block h-full rounded-full bg-amber-500"
+                    style={{ width: `${levelProgress}%` }}
+                  />
+                </span>
+              </p>
             </div>
           </div>
           <form action={signout}>
@@ -147,6 +206,8 @@ export default async function DashboardPage() {
       </header>
 
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+        <EventBanner events={events} currentDay={stats.current_day} />
+
         {/* KPI-Leiste */}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {kpis.map((kpi) => (
@@ -170,24 +231,39 @@ export default async function DashboardPage() {
 
         {/* Panels */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <section className="rounded-2xl bg-slate-900 p-5 ring-1 ring-slate-800">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-bold">Liniennetz</h2>
-              <NewRouteDialog cities={cities} />
-            </div>
-            <RoutesPanel
-              routes={routes}
-              buses={buses}
-              cities={cities}
-              reputation={reputation}
+          <div className="space-y-6">
+            <section className="rounded-2xl bg-slate-900 p-5 ring-1 ring-slate-800">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="font-bold">Liniennetz</h2>
+                <NewRouteDialog cities={availableCities} />
+              </div>
+              <RoutesPanel
+                routes={routes}
+                buses={buses}
+                cities={cities}
+                reputation={reputation}
+              />
+            </section>
+
+            <FinancePanel
+              loans={loans}
+              offers={offers}
+              score={score}
+              playerLevel={level}
             />
-          </section>
+
+            <ExpansionPanel
+              unlockedRegions={stats.unlocked_regions}
+              workshops={stats.workshops}
+              playerLevel={level}
+            />
+          </div>
 
           <div className="space-y-6">
             <section className="rounded-2xl bg-slate-900 p-5 ring-1 ring-slate-800">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-bold">Flotte</h2>
-                <BuyBusDialog models={models} cash={stats.cash} />
+                <BuyBusDialog models={models} cash={stats.cash} playerLevel={level} />
               </div>
               <FleetPanel
                 buses={buses}
@@ -203,6 +279,15 @@ export default async function DashboardPage() {
             </section>
 
             <DriversPanel drivers={drivers} buses={buses} />
+
+            <AchievementsPanel
+              fleetSize={buses.length}
+              routeCount={routes.length}
+              reputation={reputation}
+              regionCount={stats.unlocked_regions.length}
+              cash={stats.cash}
+              lastDayResult={lastDay >= 1 ? lastDayResult : null}
+            />
           </div>
         </div>
 

@@ -13,8 +13,11 @@ export type BusModel = {
   is_used: boolean;
   powertrain: Powertrain;
   range_km: number | null; // nur Elektro
+  required_level: number;
   description: string;
 };
+
+export type RegionId = "de" | "at" | "ch";
 
 export type City = {
   id: string;
@@ -22,6 +25,7 @@ export type City = {
   population: number;
   lat: number;
   lng: number;
+  region: RegionId;
 };
 
 export type PlayerStats = {
@@ -30,6 +34,32 @@ export type PlayerStats = {
   cash: number;
   current_day: number;
   reputation: number; // 1.0-5.0 Sterne
+  xp: number;
+  unlocked_regions: RegionId[];
+  workshops: RegionId[];
+};
+
+export type Loan = {
+  id: string;
+  user_id: string;
+  principal: number;
+  remaining: number;
+  daily_payment: number;
+  interest_total_pct: number;
+  term_days: number;
+  taken_on_day: number;
+};
+
+export type GameEventType = "fuel_spike" | "holiday" | "storm";
+
+export type GameEvent = {
+  id: string;
+  user_id: string;
+  type: GameEventType;
+  magnitude: number;
+  day_start: number;
+  day_end: number;
+  description: string;
 };
 
 export type Bus = {
@@ -93,7 +123,11 @@ export type TransactionType =
   | "upgrade_purchase"
   | "maintenance_service"
   | "repair"
-  | "severance";
+  | "severance"
+  | "loan_payout"
+  | "loan_payment"
+  | "region_unlock"
+  | "workshop_purchase";
 
 export type Transaction = {
   id: number;
