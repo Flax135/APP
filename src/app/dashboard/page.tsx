@@ -9,9 +9,8 @@ import { EventBanner } from "@/components/EventBanner";
 import { ExpansionPanel } from "@/components/ExpansionPanel";
 import { FinancePanel } from "@/components/FinancePanel";
 import { FleetPanel } from "@/components/FleetPanel";
-import { NewRouteDialog } from "@/components/NewRouteDialog";
+import { NetworkPanel } from "@/components/NetworkPanel";
 import { Onboarding } from "@/components/Onboarding";
-import { RoutesPanel } from "@/components/RoutesPanel";
 import {
   creditScore,
   levelForXp,
@@ -232,18 +231,14 @@ export default async function DashboardPage() {
         {/* Panels */}
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
-            <section className="rounded-2xl bg-slate-900 p-5 ring-1 ring-slate-800">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-bold">Liniennetz</h2>
-                <NewRouteDialog cities={availableCities} />
-              </div>
-              <RoutesPanel
-                routes={routes}
-                buses={buses}
-                cities={cities}
-                reputation={reputation}
-              />
-            </section>
+            <NetworkPanel
+              cities={cities}
+              availableCities={availableCities}
+              routes={routes}
+              buses={buses}
+              reputation={reputation}
+              unlockedRegions={stats.unlocked_regions}
+            />
 
             <FinancePanel
               loans={loans}

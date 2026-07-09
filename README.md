@@ -54,6 +54,17 @@ Unternehmen in die schwarzen Zahlen.
   schaltet Busmodelle (bis Level 6), Kredite und Regionen frei; XP-Fortschritt
   im Header, berechnete Erfolge (Schwarze Zahlen, Millionär, …) im Dashboard
 
+## Netzkarte
+
+- ✅ **Interaktive SVG-Karte** (kein Kartendienst nötig): ~65 Städte in DE/AT/CH,
+  Punktgröße nach Einwohnerzahl, Metropolen beschriftet, Rest per Tooltip
+- ✅ **Linien eröffnen per Klick:** zwei Städte antippen → Distanz + Marktpreis
+  erscheinen, Preis setzen, fertig; Städte gesperrter Regionen sind gedimmt
+- ✅ **Netz auf einen Blick:** durchgezogene Linien haben Busse (Strichstärke =
+  Anzahl), gestrichelte Linien sind unbesetzt
+- ✅ **Karte ⇄ Liste umschaltbar:** die Listenansicht bleibt für Preispflege,
+  Nachfrage-Ampel und Details erhalten
+
 ## Setup
 
 ### 1. Supabase-Projekt
@@ -62,7 +73,8 @@ Unternehmen in die schwarzen Zahlen.
 2. Im SQL-Editor die Migrationen **in Reihenfolge** ausführen:
    `supabase/migrations/0001_phase1_schema.sql`,
    `supabase/migrations/0002_phase2_depth.sql`,
-   `supabase/migrations/0003_phase3_meta.sql`
+   `supabase/migrations/0003_phase3_meta.sql`,
+   `supabase/migrations/0004_more_cities.sql`
    (legen Tabellen, RLS-Policies und Seed-Daten an)
 3. Unter **Authentication → Providers** E-Mail/Passwort aktivieren.
    Für schnelles lokales Testen „Confirm email“ deaktivieren.
