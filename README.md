@@ -58,10 +58,16 @@ Unternehmen in die schwarzen Zahlen.
 
 - ✅ **Interaktive SVG-Karte** (kein Kartendienst nötig): ~65 Städte in DE/AT/CH,
   Punktgröße nach Einwohnerzahl, Metropolen beschriftet, Rest per Tooltip
+- ✅ **Zoom & Pan:** Mausrad/Pinch zoomt, Ziehen verschiebt, Buttons +/−/⟲;
+  beim Hineinzoomen erscheinen die Namen aller Städte, Punktgrößen bleiben
+  bildschirmkonstant (entzerrt z.B. das Ruhrgebiet)
+- ✅ **Ländergrenzen:** vereinfachte DE/AT/CH-Silhouetten als Hintergrund;
+  freigeschaltete Regionen heller, gesperrte dunkler
 - ✅ **Linien eröffnen per Klick:** zwei Städte antippen → Distanz + Marktpreis
   erscheinen, Preis setzen, fertig; Städte gesperrter Regionen sind gedimmt
-- ✅ **Netz auf einen Blick:** durchgezogene Linien haben Busse (Strichstärke =
-  Anzahl), gestrichelte Linien sind unbesetzt
+- ✅ **Linie antippen → Preise ändern:** bestehende Linien öffnen direkt den
+  Preis-Editor für alle drei Sitzklassen (auch bei Auswahl zweier bereits
+  verbundener Städte)
 - ✅ **Karte ⇄ Liste umschaltbar:** die Listenansicht bleibt für Preispflege,
   Nachfrage-Ampel und Details erhalten
 
