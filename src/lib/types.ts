@@ -1,12 +1,18 @@
+export type Powertrain = "diesel" | "electric";
+export type FuelType = "diesel" | "hvo";
+export type DriverExperience = "rookie" | "experienced" | "veteran";
+
 export type BusModel = {
   id: string;
   name: string;
   price: number;
   seats: number;
-  consumption: number; // l/100km
+  consumption: number; // Diesel: l/100km, Elektro: kWh/100km
   speed_kmh: number;
-  reliability: number;
+  reliability: number; // 0-100
   is_used: boolean;
+  powertrain: Powertrain;
+  range_km: number | null; // nur Elektro
   description: string;
 };
 
@@ -23,7 +29,7 @@ export type PlayerStats = {
   company_name: string;
   cash: number;
   current_day: number;
-  reputation: number;
+  reputation: number; // 1.0-5.0 Sterne
 };
 
 export type Bus = {
@@ -34,6 +40,8 @@ export type Bus = {
   condition: number;
   purchased_on_day: number;
   assigned_route_id: string | null;
+  fuel_type: FuelType;
+  in_maintenance_until_day: number | null;
 };
 
 export type Route = {
@@ -42,8 +50,36 @@ export type Route = {
   origin_city_id: string;
   dest_city_id: string;
   distance_km: number;
-  ticket_price: number;
+  ticket_price: number; // Economy
+  price_comfort: number;
+  price_premium: number;
   active: boolean;
+};
+
+export type Driver = {
+  id: string;
+  user_id: string;
+  name: string;
+  experience: DriverExperience;
+  daily_salary: number;
+  satisfaction: number; // 0-100
+  assigned_bus_id: string | null;
+  hired_on_day: number;
+};
+
+export type Upgrade = {
+  id: string;
+  name: string;
+  price: number;
+  upkeep_per_day: number;
+  comfort_bonus: number;
+  description: string;
+};
+
+export type BusUpgrade = {
+  bus_id: string;
+  upgrade_id: string;
+  user_id: string;
 };
 
 export type TransactionType =
@@ -53,7 +89,11 @@ export type TransactionType =
   | "maintenance"
   | "bus_purchase"
   | "depot_fee"
-  | "starting_capital";
+  | "starting_capital"
+  | "upgrade_purchase"
+  | "maintenance_service"
+  | "repair"
+  | "severance";
 
 export type Transaction = {
   id: number;

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { signout } from "@/app/login/actions";
 import { AdvanceDayButton } from "@/components/AdvanceDayButton";
 import { BuyBusDialog } from "@/components/BuyBusDialog";
+import { DriversPanel } from "@/components/DriversPanel";
 import { FleetPanel } from "@/components/FleetPanel";
 import { NewRouteDialog } from "@/components/NewRouteDialog";
 import { Onboarding } from "@/components/Onboarding";
@@ -10,10 +11,13 @@ import { RoutesPanel } from "@/components/RoutesPanel";
 import type {
   Bus,
   BusModel,
+  BusUpgrade,
   City,
+  Driver,
   PlayerStats,
   Route,
   Transaction,
+  Upgrade,
 } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -27,12 +31,16 @@ const euro = (amount: number) =>
 
 const TYPE_LABELS: Record<Transaction["type"], string> = {
   ticket_revenue: "Tickets",
-  fuel: "Treibstoff",
+  fuel: "Energie",
   driver_salary: "Gehalt",
   maintenance: "Wartung",
   bus_purchase: "Buskauf",
   depot_fee: "Depot",
   starting_capital: "Startkapital",
+  upgrade_purchase: "Upgrade",
+  maintenance_service: "Werkstatt",
+  repair: "Reparatur",
+  severance: "Abfindung",
 };
 
 export default async function DashboardPage() {
@@ -56,12 +64,18 @@ export default async function DashboardPage() {
     { data: routesData },
     { data: modelsData },
     { data: citiesData },
+    { data: driversData },
+    { data: upgradesData },
+    { data: busUpgradesData },
     { data: transactionsData },
   ] = await Promise.all([
     supabase.from("buses").select("*").eq("user_id", user.id).order("created_at"),
     supabase.from("routes").select("*").eq("user_id", user.id).order("created_at"),
     supabase.from("bus_models").select("*").order("price"),
     supabase.from("cities").select("*").order("name"),
+    supabase.from("drivers").select("*").eq("user_id", user.id).order("created_at"),
+    supabase.from("upgrades").select("*").order("price"),
+    supabase.from("bus_upgrades").select("*").eq("user_id", user.id),
     supabase
       .from("transactions")
       .select("*")
@@ -74,14 +88,29 @@ export default async function DashboardPage() {
   const routes = (routesData ?? []) as Route[];
   const models = (modelsData ?? []) as BusModel[];
   const cities = (citiesData ?? []) as City[];
+  const drivers = (driversData ?? []) as Driver[];
+  const upgrades = (upgradesData ?? []) as Upgrade[];
+  const busUpgrades = (busUpgradesData ?? []) as BusUpgrade[];
   const transactions = (transactionsData ?? []) as Transaction[];
 
-  // Bilanz des letzten abgeschlossenen Tages
+  const busUpgradeIds: Record<string, string[]> = {};
+  for (const owned of busUpgrades) {
+    (busUpgradeIds[owned.bus_id] ??= []).push(owned.upgrade_id);
+  }
+
+  // Bilanz des letzten abgeschlossenen Tages (nur operative Posten)
   const lastDay = stats.current_day - 1;
+  const nonOperative: Transaction["type"][] = [
+    "bus_purchase",
+    "starting_capital",
+    "upgrade_purchase",
+    "severance",
+  ];
   const lastDayResult = transactions
-    .filter((t) => t.day === lastDay && t.type !== "bus_purchase" && t.type !== "starting_capital")
+    .filter((t) => t.day === lastDay && !nonOperative.includes(t.type))
     .reduce((sum, t) => sum + t.amount, 0);
 
+  const reputation = Number(stats.reputation);
   const kpis = [
     { label: "Kontostand", value: euro(stats.cash), highlight: stats.cash < 0 },
     {
@@ -90,7 +119,11 @@ export default async function DashboardPage() {
       highlight: lastDay >= 1 && lastDayResult < 0,
     },
     { label: "Flotte", value: String(buses.length), highlight: false },
-    { label: "Linien", value: String(routes.length), highlight: false },
+    {
+      label: "Reputation",
+      value: `${reputation.toFixed(1)} ★`,
+      highlight: reputation < 2.5,
+    },
   ];
 
   return (
@@ -142,16 +175,35 @@ export default async function DashboardPage() {
               <h2 className="font-bold">Liniennetz</h2>
               <NewRouteDialog cities={cities} />
             </div>
-            <RoutesPanel routes={routes} buses={buses} cities={cities} />
+            <RoutesPanel
+              routes={routes}
+              buses={buses}
+              cities={cities}
+              reputation={reputation}
+            />
           </section>
 
-          <section className="rounded-2xl bg-slate-900 p-5 ring-1 ring-slate-800">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-bold">Flotte</h2>
-              <BuyBusDialog models={models} cash={stats.cash} />
-            </div>
-            <FleetPanel buses={buses} routes={routes} models={models} cities={cities} />
-          </section>
+          <div className="space-y-6">
+            <section className="rounded-2xl bg-slate-900 p-5 ring-1 ring-slate-800">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="font-bold">Flotte</h2>
+                <BuyBusDialog models={models} cash={stats.cash} />
+              </div>
+              <FleetPanel
+                buses={buses}
+                routes={routes}
+                models={models}
+                cities={cities}
+                drivers={drivers}
+                upgrades={upgrades}
+                busUpgradeIds={busUpgradeIds}
+                cash={stats.cash}
+                currentDay={stats.current_day}
+              />
+            </section>
+
+            <DriversPanel drivers={drivers} buses={buses} />
+          </div>
         </div>
 
         {/* Buchungsjournal */}

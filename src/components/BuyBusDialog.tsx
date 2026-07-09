@@ -49,8 +49,11 @@ export function BuyBusDialog({
                         </p>
                         <p className="mt-1 text-xs text-slate-400">{model.description}</p>
                         <p className="mt-2 text-xs text-slate-300">
-                          {model.seats} Sitze · {model.consumption} l/100km ·{" "}
-                          {model.speed_kmh} km/h
+                          {model.seats} Sitze ·{" "}
+                          {model.powertrain === "electric"
+                            ? `⚡ ${model.consumption} kWh/100km · ${model.range_km} km Reichweite`
+                            : `${model.consumption} l/100km`}{" "}
+                          · {model.speed_kmh} km/h
                         </p>
                       </div>
                       <div className="text-right">

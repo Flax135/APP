@@ -6,11 +6,11 @@ setze Ticketpreise und bring dein Unternehmen in die schwarzen Zahlen.
 
 **Stack:** Next.js 15 (App Router) · Supabase (Auth + Postgres) · Tailwind CSS · TypeScript · Vercel
 
-## Phase 1 (aktueller Stand – MVP)
+## Phase 1 (MVP)
 
 - ✅ Auth (E-Mail/Passwort) + Spielstand pro User in Supabase
-- ✅ Firma gründen: Startkapital + gebrauchter Starter-Bus
-- ✅ 5 Bus-Modelle kaufbar (Preis, Sitzplätze, Verbrauch, Tempo, Zuverlässigkeit)
+- ✅ Firma gründen: Startkapital + gebrauchter Starter-Bus + 1 Fahrer
+- ✅ Bus-Modelle kaufbar (Preis, Sitzplätze, Verbrauch, Tempo, Zuverlässigkeit)
 - ✅ Linien zwischen 12 deutschen Städten (Distanz via Haversine × Umwegfaktor)
 - ✅ Ticketpreis pro Linie, Preis-Nachfrage-Kurve mit Elastizität
 - ✅ Busse Linien zuweisen; nicht zugewiesene Busse kosten Depotgebühr
@@ -18,17 +18,36 @@ setze Ticketpreise und bring dein Unternehmen in die schwarzen Zahlen.
   Treibstoff, Fahrergehalt, Wartung – manuell per Button oder stündlich per Cron
 - ✅ Buchungsjournal + Tagesbilanz im Dashboard
 
-Phase 2 (Treibstoffarten, Upgrades, Sitzklassen, Personal, Reputation) und
-Phase 3 (Kredite, Events, Expansion, Achievements) folgen.
+## Phase 2 (Realismus & Tiefe)
+
+- ✅ **Treibstoffarten:** Diesel (1,55 €/l), HVO100 (1,95 €/l, Image-Bonus,
+  pro Bus umschaltbar) und Elektro (2 E-Bus-Modelle: teuer in der Anschaffung,
+  ~0,30 €/kWh im Betrieb, Reichweiten-Limit bei der Linienzuweisung)
+- ✅ **Bus-Upgrades:** WLAN, Steckdosen/USB, Klimaanlage, Ledersitze,
+  Panorama-Fenster, Bordtoilette – Komfort-Score erhöht Zahlungsbereitschaft
+  und Zufriedenheit, kostet Anschaffung + täglichen Unterhalt
+- ✅ **Sitzklassen:** Economy/Comfort/Premium (70/20/10 der Sitze) mit eigenen
+  Preisen pro Linie; Comfort braucht Komfort-Score ≥ 3, Premium ≥ 6
+- ✅ **Wartung & Pannen:** Verschleiß pro km, Pannenrisiko steigt quadratisch
+  mit sinkendem Zustand; Werkstatt-Service kostet Geld + 1 Tag Ausfall
+- ✅ **Personal:** Fahrer in 3 Erfahrungsstufen (160–235 €/Tag), ohne Fahrer
+  fährt kein Bus; EU-Lenkzeit (VO (EG) 561/2006, max. 9 h/Tag) begrenzt die
+  Fahrten; Überlastung senkt die Zufriedenheit, Entlassung kostet Abfindung
+- ✅ **Reputation:** Tagesnote aus Komfort, Preisfairness, Pannen, Antrieb und
+  Fahrerzufriedenheit; träge geglättete Sterne-Bewertung (1–5) wirkt als
+  Nachfrage-Multiplikator (3★ = ×1,0 · 5★ = ×1,2)
+
+Phase 3 (Kredite, Events, Expansion, Achievements) folgt.
 
 ## Setup
 
 ### 1. Supabase-Projekt
 
 1. Projekt auf [supabase.com](https://supabase.com) anlegen
-2. Im SQL-Editor die Migration ausführen:
-   `supabase/migrations/0001_phase1_schema.sql`
-   (legt Tabellen, RLS-Policies und Seed-Daten an)
+2. Im SQL-Editor die Migrationen **in Reihenfolge** ausführen:
+   `supabase/migrations/0001_phase1_schema.sql`, dann
+   `supabase/migrations/0002_phase2_depth.sql`
+   (legen Tabellen, RLS-Policies und Seed-Daten an)
 3. Unter **Authentication → Providers** E-Mail/Passwort aktivieren.
    Für schnelles lokales Testen „Confirm email“ deaktivieren.
 
@@ -47,14 +66,19 @@ npm run dev
   `CRON_SECRET` als Env-Variable setzen – Vercel sendet ihn automatisch als
   Bearer-Token an `/api/cron/tick`
 
-## Spiellogik (Phase 1)
+## Spiellogik
 
 - **Nachfrage pro Fahrt** ≈ `√(Einwohner A × Einwohner B) / 80.000 × Distanzfaktor`,
-  gedämpft unter 120 km (Auto/ÖPNV) und über 450 km (Bahn/Flug)
+  gedämpft unter 120 km (Auto/ÖPNV) und über 450 km (Bahn/Flug), multipliziert
+  mit dem Reputationsfaktor `0,7 + Sterne × 0,1`
 - **Preis-Nachfrage:** `Nachfrage × (Marktpreis / Preis)^1,5`, Marktpreis ≈ 0,11 €/km
-- **Fahrten/Tag:** 14 Einsatzstunden ÷ (Fahrzeit + 45 min Puffer)
-- **Kosten:** Diesel 1,55 €/l, Fahrer 180 €/Tag, Wartung 0,20 €/km,
-  Depotgebühr 25 €/Tag für Busse ohne Linie
+  (Comfort ×1,35, Premium ×1,8)
+- **Fahrten/Tag:** Minimum aus 14 Einsatzstunden ÷ (Fahrzeit + 45 min Puffer)
+  und EU-Lenkzeit 9 h ÷ Fahrzeit
+- **Kosten:** Diesel 1,55 €/l · HVO 1,95 €/l · Strom 0,30 €/kWh, Fahrer
+  160–235 €/Tag, Wartung 0,20 €/km, Upgrade-Unterhalt, Depotgebühr 25 €/Tag
+- **Pannen:** `((100 − Zustand)/100)² × (1,2 − Zuverlässigkeit/100) × 0,9
+  × Fahrerfaktor` pro Einsatztag; Panne halbiert den Tag und kostet Reparatur
 
 Die Kernlogik ist pur in `src/lib/game/` – identisch genutzt vom
 „Nächster Tag“-Button (Server Action) und vom Cron-Endpoint.

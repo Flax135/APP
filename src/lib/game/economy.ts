@@ -1,11 +1,19 @@
-import type { BusModel, City } from "@/lib/types";
+import type { BusModel, City, DriverExperience, FuelType } from "@/lib/types";
 import {
+  DRIVER_BREAKDOWN_FACTOR,
+  ELECTRICITY_PRICE_PER_KWH,
   FUEL_PRICE_PER_LITER,
+  HVO_PRICE_PER_LITER,
+  MAX_DRIVING_HOURS_PER_DAY,
   MAX_PRICE_FACTOR,
   MIN_REFERENCE_PRICE,
   OPERATING_HOURS_PER_DAY,
   PRICE_ELASTICITY,
   REFERENCE_PRICE_PER_KM,
+  REPAIR_BASE_COST,
+  REPAIR_COST_FACTOR,
+  SERVICE_BASE_COST,
+  SERVICE_COST_PER_POINT_FACTOR,
   TURNAROUND_HOURS,
 } from "./constants";
 
@@ -22,7 +30,7 @@ export function routeDistanceKm(a: City, b: City): number {
   return Math.round(airline * 1.25);
 }
 
-/** Marktgerechter Referenzpreis für eine Distanz */
+/** Marktgerechter Referenzpreis (Economy) für eine Distanz */
 export function referencePrice(distanceKm: number): number {
   return Math.max(MIN_REFERENCE_PRICE, distanceKm * REFERENCE_PRICE_PER_KM);
 }
@@ -50,7 +58,7 @@ export function priceFactor(price: number, refPrice: number): number {
   return Math.min(MAX_PRICE_FACTOR, (refPrice / price) ** PRICE_ELASTICITY);
 }
 
-/** Erwartete Fahrgäste pro Fahrt (vor Kapazitätsgrenze) */
+/** Erwartete Fahrgäste pro Fahrt (vor Kapazitätsgrenze und Klassenaufteilung) */
 export function demandPerTrip(
   origin: City,
   dest: City,
@@ -61,13 +69,67 @@ export function demandPerTrip(
   return Math.round(base * priceFactor(ticketPrice, referencePrice(distanceKm)));
 }
 
-/** Wie viele einfache Fahrten schafft ein Bus pro Tag auf dieser Distanz? */
-export function tripsPerDay(distanceKm: number, model: BusModel): number {
-  const hoursPerLeg = distanceKm / model.speed_kmh + TURNAROUND_HOURS;
-  return Math.max(1, Math.floor(OPERATING_HOURS_PER_DAY / hoursPerLeg));
+/** Fahrzeit einer einfachen Fahrt in Stunden */
+export function legHours(distanceKm: number, model: BusModel): number {
+  return distanceKm / model.speed_kmh;
 }
 
-/** Treibstoffkosten für eine Strecke in € */
-export function fuelCost(distanceKm: number, model: BusModel): number {
-  return (distanceKm * model.consumption * FUEL_PRICE_PER_LITER) / 100;
+/**
+ * Fahrten pro Tag: begrenzt durch Einsatzzeit UND EU-Lenkzeit des Fahrers.
+ * 0, wenn die Strecke selbst für eine einzige Fahrt zu lang ist.
+ */
+export function tripsPerDay(distanceKm: number, model: BusModel): number {
+  const leg = legHours(distanceKm, model);
+  const byOperating = Math.floor(OPERATING_HOURS_PER_DAY / (leg + TURNAROUND_HOURS));
+  const byDrivingTime = Math.floor(MAX_DRIVING_HOURS_PER_DAY / leg);
+  return Math.max(0, Math.min(byOperating, byDrivingTime));
+}
+
+/** Energiekosten für eine Strecke in € (Diesel/HVO/Strom je nach Antrieb) */
+export function energyCost(
+  distanceKm: number,
+  model: BusModel,
+  fuelType: FuelType
+): number {
+  const unitsPer100 = model.consumption; // l oder kWh
+  const pricePerUnit =
+    model.powertrain === "electric"
+      ? ELECTRICITY_PRICE_PER_KWH
+      : fuelType === "hvo"
+        ? HVO_PRICE_PER_LITER
+        : FUEL_PRICE_PER_LITER;
+  return (distanceKm * unitsPer100 * pricePerUnit) / 100;
+}
+
+/** Energie-Label fürs Buchungsjournal */
+export function energyLabel(model: BusModel, fuelType: FuelType): string {
+  if (model.powertrain === "electric") return "Strom";
+  return fuelType === "hvo" ? "HVO" : "Diesel";
+}
+
+/**
+ * Pannenwahrscheinlichkeit pro Einsatztag.
+ * Steigt quadratisch mit sinkendem Zustand, sinkt mit Zuverlässigkeit
+ * des Modells und Erfahrung des Fahrers.
+ */
+export function breakdownProbability(
+  condition: number,
+  model: BusModel,
+  experience: DriverExperience
+): number {
+  const wearRisk = ((100 - condition) / 100) ** 2;
+  const reliabilityRisk = 1.2 - model.reliability / 100;
+  return Math.min(0.5, wearRisk * reliabilityRisk * 0.9 * DRIVER_BREAKDOWN_FACTOR[experience]);
+}
+
+/** Kosten eines Werkstatt-Service (stellt Zustand auf 100 % wieder her) */
+export function serviceCost(condition: number, model: BusModel): number {
+  return Math.round(
+    SERVICE_BASE_COST + model.price * (100 - condition) * SERVICE_COST_PER_POINT_FACTOR
+  );
+}
+
+/** Reparaturkosten nach einer Panne */
+export function repairCost(model: BusModel): number {
+  return Math.round(REPAIR_BASE_COST + model.price * REPAIR_COST_FACTOR);
 }

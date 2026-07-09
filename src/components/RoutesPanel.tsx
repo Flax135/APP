@@ -1,6 +1,7 @@
 "use client";
 
-import { updateTicketPrice } from "@/app/dashboard/actions";
+import { updateRoutePrices } from "@/app/dashboard/actions";
+import { CLASS_PRICE_MULTIPLIER, reputationDemandFactor } from "@/lib/game/constants";
 import {
   baseDemandPerTrip,
   priceFactor,
@@ -17,16 +18,56 @@ function demandIndicator(factor: number): { label: string; className: string } {
   return { label: "Schwach", className: "bg-red-950 text-red-400" };
 }
 
+function PriceInput({
+  name,
+  label,
+  defaultValue,
+  refPrice,
+  disabled,
+}: {
+  name: string;
+  label: string;
+  defaultValue: number;
+  refPrice: number;
+  disabled: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="mb-0.5 block text-xs text-slate-400">
+        {label} <span className="text-slate-500">(Markt {refPrice.toFixed(2)} €)</span>
+      </span>
+      <div className="relative">
+        <input
+          name={name}
+          type="number"
+          step="0.5"
+          min="1"
+          max="500"
+          defaultValue={defaultValue}
+          disabled={disabled}
+          className="w-full rounded-lg bg-slate-900 px-2 py-1.5 pr-7 text-sm text-white ring-1 ring-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+        />
+        <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-sm text-slate-500">
+          €
+        </span>
+      </div>
+    </label>
+  );
+}
+
 export function RoutesPanel({
   routes,
   buses,
   cities,
+  reputation,
 }: {
   routes: Route[];
   buses: Bus[];
   cities: City[];
+  reputation: number;
 }) {
   const citiesById = new Map(cities.map((c) => [c.id, c]));
+  const repFactor = reputationDemandFactor(reputation);
 
   if (routes.length === 0) {
     return (
@@ -43,9 +84,9 @@ export function RoutesPanel({
         const dest = citiesById.get(route.dest_city_id);
         if (!origin || !dest) return null;
 
-        const price = Number(route.ticket_price);
-        const refPrice = referencePrice(route.distance_km);
-        const factor = priceFactor(price, refPrice);
+        const ecoPrice = Number(route.ticket_price);
+        const refEco = referencePrice(route.distance_km);
+        const factor = priceFactor(ecoPrice, refEco) * repFactor;
         const demand = Math.round(
           baseDemandPerTrip(origin, dest, route.distance_km) * factor
         );
@@ -75,38 +116,43 @@ export function RoutesPanel({
               </span>
             </div>
 
-            <ActionForm action={updateTicketPrice} className="mt-3">
+            <ActionForm action={updateRoutePrices} className="mt-3">
               {(pending) => (
-                <div className="flex items-center gap-2">
+                <>
                   <input type="hidden" name="route_id" value={route.id} />
-                  <div className="relative min-w-0 flex-1">
-                    <input
+                  <div className="grid grid-cols-3 gap-2">
+                    <PriceInput
                       name="ticket_price"
-                      type="number"
-                      step="0.5"
-                      min="1"
-                      max="500"
-                      defaultValue={price}
+                      label="Economy"
+                      defaultValue={ecoPrice}
+                      refPrice={refEco}
                       disabled={pending}
-                      className="w-full rounded-lg bg-slate-900 px-2 py-1.5 pr-8 text-sm text-white ring-1 ring-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-500">
-                      €
-                    </span>
+                    <PriceInput
+                      name="price_comfort"
+                      label="Comfort"
+                      defaultValue={Number(route.price_comfort)}
+                      refPrice={refEco * CLASS_PRICE_MULTIPLIER.comfort}
+                      disabled={pending}
+                    />
+                    <PriceInput
+                      name="price_premium"
+                      label="Premium"
+                      defaultValue={Number(route.price_premium)}
+                      refPrice={refEco * CLASS_PRICE_MULTIPLIER.premium}
+                      disabled={pending}
+                    />
                   </div>
                   <button
                     type="submit"
                     disabled={pending}
-                    className="rounded-lg bg-slate-700 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-600 disabled:text-slate-400"
+                    className="mt-2 w-full rounded-lg bg-slate-700 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-600 disabled:text-slate-400"
                   >
-                    {pending ? "…" : "Preis setzen"}
+                    {pending ? "…" : "Preise setzen"}
                   </button>
-                </div>
+                </>
               )}
             </ActionForm>
-            <p className="mt-1.5 text-xs text-slate-500">
-              Marktpreis: {refPrice.toFixed(2)} €
-            </p>
           </li>
         );
       })}

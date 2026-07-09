@@ -14,9 +14,9 @@ export function Onboarding() {
           <div className="text-4xl">🚌</div>
           <h1 className="mt-2 text-2xl font-bold text-white">Gründe dein Busunternehmen</h1>
           <p className="mt-2 text-sm text-slate-400">
-            Du startest mit {formatEuro(STARTING_CASH)} Kapital und einem gebrauchten
-            Setra S 315. Eröffne Linien, setze Preise und bring dein Unternehmen in
-            die schwarzen Zahlen.
+            Du startest mit {formatEuro(STARTING_CASH)} Kapital, einem gebrauchten
+            Setra S 315 und einem angestellten Fahrer. Eröffne Linien, setze Preise
+            und bring dein Unternehmen in die schwarzen Zahlen.
           </p>
         </div>
 
