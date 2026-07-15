@@ -1,12 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { createRoute } from "@/app/dashboard/actions";
 import { referencePrice, routeDistanceKm } from "@/lib/game/economy";
 import type { City } from "@/lib/types";
+import { useGameActions } from "./GameActionsContext";
 import { ActionForm, Modal } from "./ui";
 
 export function NewRouteDialog({ cities }: { cities: City[] }) {
+  const { createRoute } = useGameActions();
   const [open, setOpen] = useState(false);
   const [originId, setOriginId] = useState(cities[0]?.id ?? "");
   const [destId, setDestId] = useState(cities[1]?.id ?? "");
@@ -98,7 +99,7 @@ export function NewRouteDialog({ cities }: { cities: City[] }) {
                 <input
                   name="ticket_price"
                   type="number"
-                  step="0.5"
+                  step="0.01"
                   min="1"
                   max="500"
                   required

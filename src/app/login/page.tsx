@@ -67,6 +67,13 @@ export default async function LoginPage({
             </button>
           </div>
         </form>
+
+        <a
+          href="/demo"
+          className="mt-4 block rounded-lg bg-slate-800/60 px-4 py-2 text-center text-sm text-slate-300 ring-1 ring-slate-700 transition hover:bg-slate-800 hover:text-white"
+        >
+          🎮 Ohne Anmeldung ausprobieren
+        </a>
       </div>
     </main>
   );

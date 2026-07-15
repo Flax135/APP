@@ -71,6 +71,21 @@ Unternehmen in die schwarzen Zahlen.
 - ✅ **Karte ⇄ Liste umschaltbar:** die Listenansicht bleibt für Preispflege,
   Nachfrage-Ampel und Details erhalten
 
+## Schnellstart: Demo-Modus (keine Konfiguration nötig)
+
+```bash
+npm install
+npm run dev
+```
+
+[http://localhost:3000](http://localhost:3000) öffnen – fertig. Ohne
+Supabase-Konfiguration landet man automatisch im **Demo-Modus** (`/demo`):
+das komplette Spiel ohne Anmeldung, der Spielstand liegt im localStorage des
+Browsers. Die Demo ist auch bei konfiguriertem Supabase über den Link
+„Ohne Anmeldung ausprobieren“ auf der Login-Seite erreichbar.
+
+Für das volle Spiel mit Cloud-Speicherstand pro User folgt das Setup unten.
+
 ## Setup
 
 ### 1. Supabase-Projekt

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { assignBus, buyUpgrade, serviceBus, setBusFuel } from "@/app/dashboard/actions";
 import { serviceCost } from "@/lib/game/economy";
 import type { Bus, BusModel, City, Driver, Route, Upgrade } from "@/lib/types";
+import { useGameActions } from "./GameActionsContext";
 import { ActionForm, Modal, formatEuro } from "./ui";
 
 function routeLabel(route: Route, citiesById: Map<string, City>): string {
@@ -28,6 +28,7 @@ function UpgradesDialog({
   ownedIds: Set<string>;
   cash: number;
 }) {
+  const { buyUpgrade } = useGameActions();
   const [open, setOpen] = useState(false);
   const comfortScore = upgrades
     .filter((u) => ownedIds.has(u.id))
@@ -113,6 +114,7 @@ export function FleetPanel({
   cash: number;
   currentDay: number;
 }) {
+  const { assignBus, serviceBus, setBusFuel } = useGameActions();
   const modelsById = new Map(models.map((m) => [m.id, m]));
   const citiesById = new Map(cities.map((c) => [c.id, c]));
   const driverByBusId = new Map(

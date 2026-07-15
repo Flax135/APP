@@ -1,12 +1,13 @@
 "use client";
 
-import { startCompany } from "@/app/dashboard/actions";
 import { formatEuro, ActionForm } from "./ui";
+import { useGameActions } from "./GameActionsContext";
 import {
   STARTING_CASH,
 } from "@/lib/game/constants";
 
 export function Onboarding() {
+  const { startCompany } = useGameActions();
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-950 p-4">
       <div className="w-full max-w-md rounded-2xl bg-slate-900 p-8 ring-1 ring-slate-800">

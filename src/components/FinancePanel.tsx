@@ -1,8 +1,8 @@
 "use client";
 
-import { takeLoan } from "@/app/dashboard/actions";
 import { MAX_ACTIVE_LOANS, type LoanOffer } from "@/lib/game/meta";
 import type { Loan } from "@/lib/types";
+import { useGameActions } from "./GameActionsContext";
 import { ActionForm, formatEuro } from "./ui";
 
 export function FinancePanel({
@@ -16,6 +16,7 @@ export function FinancePanel({
   score: number;
   playerLevel: number;
 }) {
+  const { takeLoan } = useGameActions();
   const activeLoans = loans.filter((l) => l.remaining > 0);
   const scoreColor =
     score >= 70 ? "text-emerald-400" : score >= 50 ? "text-amber-400" : "text-red-400";

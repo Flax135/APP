@@ -1,9 +1,9 @@
 "use client";
 
-import { updateRoutePrices } from "@/app/dashboard/actions";
 import { CLASS_PRICE_MULTIPLIER } from "@/lib/game/constants";
 import { referencePrice } from "@/lib/game/economy";
 import type { Route } from "@/lib/types";
+import { useGameActions } from "./GameActionsContext";
 import { ActionForm } from "./ui";
 
 function PriceInput({
@@ -28,7 +28,7 @@ function PriceInput({
         <input
           name={name}
           type="number"
-          step="0.5"
+          step="0.01"
           min="1"
           max="500"
           defaultValue={defaultValue}
@@ -45,6 +45,7 @@ function PriceInput({
 
 /** Preis-Editor für alle drei Sitzklassen einer Route */
 export function RoutePriceForm({ route }: { route: Route }) {
+  const { updateRoutePrices } = useGameActions();
   const refEco = referencePrice(route.distance_km);
 
   return (

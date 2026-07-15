@@ -1,11 +1,11 @@
 "use client";
 
-import { buyWorkshop, unlockRegion } from "@/app/dashboard/actions";
 import {
   REGIONS,
   WORKSHOP_COST,
 } from "@/lib/game/meta";
 import type { RegionId } from "@/lib/types";
+import { useGameActions } from "./GameActionsContext";
 import { ActionForm, formatEuro } from "./ui";
 
 export function ExpansionPanel({
@@ -17,6 +17,7 @@ export function ExpansionPanel({
   workshops: RegionId[];
   playerLevel: number;
 }) {
+  const { unlockRegion, buyWorkshop } = useGameActions();
   const regionIds = Object.keys(REGIONS) as RegionId[];
 
   return (

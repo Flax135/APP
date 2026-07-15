@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { advanceDay } from "@/app/dashboard/actions";
+import { useGameActions } from "./GameActionsContext";
 
 export function AdvanceDayButton() {
+  const { advanceDay } = useGameActions();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 

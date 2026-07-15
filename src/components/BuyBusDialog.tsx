@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { buyBus } from "@/app/dashboard/actions";
 import type { BusModel } from "@/lib/types";
+import { useGameActions } from "./GameActionsContext";
 import { ActionForm, Modal, formatEuro } from "./ui";
 
 export function BuyBusDialog({
@@ -14,6 +14,7 @@ export function BuyBusDialog({
   cash: number;
   playerLevel: number;
 }) {
+  const { buyBus } = useGameActions();
   const [open, setOpen] = useState(false);
 
   return (

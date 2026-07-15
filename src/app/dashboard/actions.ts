@@ -13,6 +13,7 @@ import {
   STARTING_CASH,
 } from "@/lib/game/constants";
 import { routeDistanceKm, serviceCost } from "@/lib/game/economy";
+import { randomDriverName } from "@/lib/game/names";
 import {
   MAX_ACTIVE_LOANS,
   REGIONS,
@@ -40,14 +41,6 @@ import type {
 } from "@/lib/types";
 
 type ActionResult = { ok: true } | { ok: false; error: string };
-
-const DRIVER_NAMES = [
-  "Klaus Bergmann", "Sabine Krüger", "Murat Yilmaz", "Petra Lindner",
-  "Jörg Steinbach", "Anna Kowalski", "Hans Ottmann", "Fatma Demir",
-  "Rainer Vogt", "Melanie Busch", "Tomasz Nowak", "Ingrid Sommer",
-  "Dieter Falk", "Elena Petrova", "Stefan Brandt", "Gül Aydin",
-  "Werner Haas", "Katrin Ebert", "Milan Kovac", "Birgit Lorenz",
-];
 
 async function requireUser() {
   const supabase = await createClient();
@@ -91,7 +84,7 @@ export async function startCompany(formData: FormData): Promise<ActionResult> {
 
   await supabase.from("drivers").insert({
     user_id: user.id,
-    name: DRIVER_NAMES[Math.floor(Math.random() * DRIVER_NAMES.length)],
+    name: randomDriverName(),
     experience: "experienced",
     daily_salary: DRIVER_SALARIES.experienced,
     assigned_bus_id: starterBus?.id ?? null,
@@ -641,7 +634,7 @@ export async function hireDriver(formData: FormData): Promise<ActionResult> {
 
   const { error } = await supabase.from("drivers").insert({
     user_id: user.id,
-    name: DRIVER_NAMES[Math.floor(Math.random() * DRIVER_NAMES.length)],
+    name: randomDriverName(),
     experience,
     daily_salary: DRIVER_SALARIES[experience],
     hired_on_day: (stats as PlayerStats).current_day,

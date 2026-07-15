@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createRoute } from "@/app/dashboard/actions";
 import { REGION_BORDERS } from "@/lib/game/borders";
 import { referencePrice, routeDistanceKm } from "@/lib/game/economy";
 import { REGIONS } from "@/lib/game/meta";
 import type { Bus, City, RegionId, Route } from "@/lib/types";
+import { useGameActions } from "./GameActionsContext";
 import { RoutePriceForm } from "./RoutePriceForm";
 import { ActionForm } from "./ui";
 
@@ -65,6 +65,7 @@ export function NetworkMap({
   buses: Bus[];
   unlockedRegions: RegionId[];
 }) {
+  const { createRoute } = useGameActions();
   const [selected, setSelected] = useState<string[]>([]);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [hint, setHint] = useState<string | null>(null);
@@ -116,7 +117,9 @@ export function NetworkMap({
   }, []);
 
   const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
+    // WICHTIG: hier noch kein setPointerCapture – das würde das click-Event
+    // aufs SVG umleiten und Stadt-/Linien-Klicks schlucken. Capture erst,
+    // sobald wirklich gezogen wird (siehe onPointerMove).
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     dragged.current = false;
     if (pointers.current.size === 2) {
@@ -136,6 +139,12 @@ export function NetworkMap({
     if (!prev) return;
     const current = { x: e.clientX, y: e.clientY };
     pointers.current.set(e.pointerId, current);
+
+    // Pan/Pinch im Gang: Pointer einfangen, damit die Geste auch außerhalb
+    // des SVG weiterläuft (Klicks sind ab hier ohnehin unterdrückt)
+    if (dragged.current && !e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    }
 
     if (pointers.current.size === 2 && pinchStart.current) {
       const [a, b] = [...pointers.current.values()];
@@ -457,7 +466,7 @@ export function NetworkMap({
                   <input
                     name="ticket_price"
                     type="number"
-                    step="0.5"
+                    step="0.01"
                     min="1"
                     max="500"
                     required

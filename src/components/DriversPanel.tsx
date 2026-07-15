@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { assignDriver, fireDriver, hireDriver } from "@/app/dashboard/actions";
 import {
   DRIVER_SALARIES,
   SEVERANCE_DAYS,
 } from "@/lib/game/constants";
 import type { Bus, Driver, DriverExperience } from "@/lib/types";
+import { useGameActions } from "./GameActionsContext";
 import { ActionForm, Modal, formatEuro } from "./ui";
 
 const EXPERIENCE_LABELS: Record<DriverExperience, string> = {
@@ -25,6 +25,7 @@ const smallButtonClass =
   "rounded-lg bg-slate-700 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-slate-600 disabled:text-slate-400";
 
 function HireDialog() {
+  const { hireDriver } = useGameActions();
   const [open, setOpen] = useState(false);
   const levels: DriverExperience[] = ["rookie", "experienced", "veteran"];
 
@@ -79,6 +80,7 @@ function HireDialog() {
 }
 
 export function DriversPanel({ drivers, buses }: { drivers: Driver[]; buses: Bus[] }) {
+  const { assignDriver, fireDriver } = useGameActions();
   return (
     <section className="rounded-2xl bg-slate-900 p-5 ring-1 ring-slate-800">
       <div className="mb-4 flex items-center justify-between">
